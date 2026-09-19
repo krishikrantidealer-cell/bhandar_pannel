@@ -1291,8 +1291,8 @@ class _BiometricSentinelPainter extends CustomPainter {
     );
     canvas.drawCircle(satPos, 1.5, Paint()..color = Colors.white);
 
-    // 3. Eye Sclera Bed (Smooth, Original Proportional Circle)
-    final eyeRadius = outerRadius * 0.52;
+    // 3. Eye Sclera Bed (Expansive, Balanced Proportions with Wide Eye Travel)
+    final eyeRadius = outerRadius * 0.64;
     final scleraPaint = Paint()
       ..shader = RadialGradient(
         colors: isDark
@@ -1312,33 +1312,38 @@ class _BiometricSentinelPainter extends CustomPainter {
       ..strokeWidth = 1.0;
     canvas.drawCircle(center, eyeRadius, eyeBorderPaint);
 
-    // 4. Open Eye (Gaze-Tracking Iris & Gleam)
-    // Calculate Look Direction
+    // 4. Open Eye (Gaze-Tracking Iris & Gleam with Zero-Clip Margins)
+    final irisRadius = eyeRadius * 0.44;
+    final maxTravel = (eyeRadius - irisRadius) - 3.0;
+
+    // Calculate Look Direction with Full Dynamic Range
     Offset lookOffset;
     if (isIdentifierFocused) {
       lookOffset = const Offset(
         0.0,
-        0.45,
+        0.65,
       ); // Looking down attentively at identifier input
     } else if (isPasswordFocused) {
-      lookOffset = const Offset(0.0, 0.15);
+      lookOffset = const Offset(0.0, 0.20);
     } else {
-      // Smooth natural gaze with subtle idle drift
+      // Smooth natural gaze with generous horizontal and vertical room
       final idleX = math.cos(waveProgress * 2 * math.pi) * 0.05;
       final idleY = math.sin(waveProgress * 2 * math.pi) * 0.05;
       lookOffset = Offset(
-        (mousePos.dx + idleX).clamp(-0.5, 0.5),
-        (mousePos.dy + idleY).clamp(-0.5, 0.5),
+        (mousePos.dx + idleX).clamp(-0.95, 0.95),
+        (mousePos.dy + idleY).clamp(-0.95, 0.95),
       );
     }
 
-    final pupilMaxShift = eyeRadius * 0.40;
-    final pupilCenter = Offset(
-      center.dx + lookOffset.dx * pupilMaxShift,
-      center.dy +
-          lookOffset.dy * pupilMaxShift +
-          (shieldProgress * 8.0), // Glides down when closing
+    final rawShift = Offset(
+      lookOffset.dx * maxTravel,
+      lookOffset.dy * maxTravel + (shieldProgress * 5.0),
     );
+    final shiftDistance = rawShift.distance;
+    final clampedShift = shiftDistance > maxTravel
+        ? (rawShift / shiftDistance) * maxTravel
+        : rawShift;
+    final pupilCenter = center + clampedShift;
 
     // Clip to Eye Ball
     canvas.save();
@@ -1347,7 +1352,6 @@ class _BiometricSentinelPainter extends CustomPainter {
     );
 
     if (shieldProgress < 1.0) {
-      final irisRadius = eyeRadius * 0.58;
 
       // Glowing Concentric Iris (Emerald to Cyan to Deep Forest Green) - No black color
       final irisPaint = Paint()
