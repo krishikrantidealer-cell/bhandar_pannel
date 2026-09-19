@@ -117,14 +117,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _fillQuickRole(String identifier, String password) {
-    setState(() {
-      _identifierController.text = identifier;
-      _passwordController.text = password;
-      _isPasswordFocused = false;
-      _shieldController.reverse();
-    });
-  }
+
 
   void _submitLogin() {
     final identifier = _identifierController.text.trim();
@@ -586,7 +579,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                               mousePos: _mousePos,
                               isIdentifierFocused: _isIdentifierFocused,
                               isPasswordFocused: _isPasswordFocused,
-                              typingLength: _identifierController.text.length,
+                              typingLength: _isPasswordFocused
+                                  ? _passwordController.text.length
+                                  : _identifierController.text.length,
                               primaryColor: palette.primary,
                               secondaryColor: palette.secondary,
                               isDark: isDark,
@@ -659,56 +654,6 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Preset Quick-Role Segmented Bar
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF060912) : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _buildRoleSegmentItem(
-                                  '👑 Super Admin',
-                                  'admin@krishibhandar.in',
-                                  'admin',
-                                  _identifierController.text == 'admin@krishibhandar.in',
-                                  palette,
-                                  isDark,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: _buildRoleSegmentItem(
-                                  '🌾 Ops Lead',
-                                  'ops@krishibhandar.in',
-                                  'ops123',
-                                  _identifierController.text == 'ops@krishibhandar.in',
-                                  palette,
-                                  isDark,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: _buildRoleSegmentItem(
-                                  '📊 Auditor',
-                                  'audit@krishibhandar.in',
-                                  'audit123',
-                                  _identifierController.text == 'audit@krishibhandar.in',
-                                  palette,
-                                  isDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 18),
-
                         // Admin Identifier Field
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1113,57 +1058,6 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
       ),
     );
   }
-
-  Widget _buildRoleSegmentItem(
-    String label,
-    String id,
-    String pwd,
-    bool isSelected,
-    PaletteConfig palette,
-    bool isDark,
-  ) {
-    return InkWell(
-      onTap: () => _fillQuickRole(id, pwd),
-      borderRadius: BorderRadius.circular(8),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? palette.primary.withValues(alpha: 0.22) : Colors.white)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? palette.primary.withValues(alpha: 0.6)
-                : Colors.transparent,
-            width: 1,
-          ),
-          boxShadow: isSelected && !isDark
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : [],
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected
-                  ? (isDark ? Colors.white : palette.primary)
-                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// High-Precision Kinetic Biometric Sentinel Painter:
@@ -1216,30 +1110,39 @@ class _BiometricSentinelPainter extends CustomPainter {
       ).createShader(Rect.fromCircle(center: center, radius: haloRadius));
     canvas.drawCircle(center, haloRadius, haloPaint);
 
-    // 2. Outer Segmented Tachymeter Rotor Ring (Smooth & Subtle)
-    final rotorSpeedMultiplier = 1.0 + (typingLength * 0.03).clamp(0.0, 1.2);
-    final rotorAngle = rotorProgress * 2 * math.pi * rotorSpeedMultiplier;
+    // 2. High-Precision Outer Tachymeter & Orbital Satellite Ring
+    final rotorAngle = rotorProgress * 2 * math.pi;
 
+    // Outer Precision Guide Track
     final outerRingPaint = Paint()
-      ..color = primaryColor.withValues(alpha: isDark ? 0.4 : 0.25)
+      ..color = (isDark ? Colors.white : const Color(0xFF0F172A)).withValues(alpha: isDark ? 0.12 : 0.08)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8;
-
+      ..strokeWidth = 1.0;
     canvas.drawCircle(center, radius, outerRingPaint);
 
-    // Tachymeter Tick Notches
-    const int tickCount = 20;
+    // 24-Point Precision Tachymeter Gauge Ticks
+    const int tickCount = 24;
     final tickPaint = Paint()
-      ..color = primaryColor.withValues(alpha: isDark ? 0.8 : 0.5)
-      ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
 
     for (int i = 0; i < tickCount; i++) {
       final tickAngle = rotorAngle + (i * 2 * math.pi / tickCount);
-      final isMajor = i % 5 == 0;
+      final isCardinal = i % 6 == 0; // 0, 6, 12, 18 (90 deg intervals)
+      final isSubMajor = i % 2 == 0;
+
+      final double tickLen = isCardinal ? 6.5 : (isSubMajor ? 4.0 : 2.5);
+      final double strokeW = isCardinal ? 1.6 : 1.0;
+      final double alpha = isCardinal
+          ? (isDark ? 0.90 : 0.65)
+          : (isSubMajor ? (isDark ? 0.45 : 0.30) : (isDark ? 0.20 : 0.12));
+
+      tickPaint
+        ..color = primaryColor.withValues(alpha: alpha)
+        ..strokeWidth = strokeW;
+
       final p1 = Offset(
-        center.dx + math.cos(tickAngle) * (radius - (isMajor ? 7 : 4)),
-        center.dy + math.sin(tickAngle) * (radius - (isMajor ? 7 : 4)),
+        center.dx + math.cos(tickAngle) * (radius - tickLen),
+        center.dy + math.sin(tickAngle) * (radius - tickLen),
       );
       final p2 = Offset(
         center.dx + math.cos(tickAngle) * radius,
@@ -1248,28 +1151,68 @@ class _BiometricSentinelPainter extends CustomPainter {
       canvas.drawLine(p1, p2, tickPaint);
     }
 
-    // 3. Counter-Rotating Inner Turbine Arc
-    final innerRadius = radius * 0.76;
-    final counterAngle = -rotorAngle * 1.3;
+    // Two Counter-Orbiting Luminous Satellite Nodes on Outer Track
+    final satAngle1 = rotorAngle * 1.5;
+    final satPos1 = Offset(center.dx + math.cos(satAngle1) * radius, center.dy + math.sin(satAngle1) * radius);
+    final satPaint1 = Paint()..color = primaryColor.withValues(alpha: isDark ? 0.95 : 0.75);
+    canvas.drawCircle(satPos1, 2.6, satPaint1);
+    canvas.drawCircle(satPos1, 1.2, Paint()..color = Colors.white.withValues(alpha: 0.95));
+
+    final satAngle2 = -rotorAngle * 1.2 + math.pi;
+    final satPos2 = Offset(center.dx + math.cos(satAngle2) * radius, center.dy + math.sin(satAngle2) * radius);
+    final satPaint2 = Paint()..color = secondaryColor.withValues(alpha: isDark ? 0.90 : 0.70);
+    canvas.drawCircle(satPos2, 2.2, satPaint2);
+
+    // 3. Mid-Tier Counter-Rotating Segmented Telemetry Arcs
+    final midRadius = radius * 0.84;
+    final midAngle = -rotorAngle * 0.8;
+
+    final midArcPaint = Paint()
+      ..color = primaryColor.withValues(alpha: isDark ? 0.35 : 0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3
+      ..strokeCap = StrokeCap.round;
+
+    // Dual 70-Degree Symmetrical Orbital Arcs
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: midRadius),
+      midAngle,
+      math.pi * 0.40,
+      false,
+      midArcPaint,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: midRadius),
+      midAngle + math.pi,
+      math.pi * 0.40,
+      false,
+      midArcPaint,
+    );
+
+    // 4. Inner Luminous Laser Sweep Turbine Arc
+    final innerRadius = radius * 0.70;
+    final innerAngle = rotorAngle * 1.1;
 
     final arcPaint = Paint()
       ..shader = SweepGradient(
         colors: [
           Colors.transparent,
-          primaryColor,
-          secondaryColor,
+          primaryColor.withValues(alpha: 0.2),
+          primaryColor.withValues(alpha: isDark ? 0.95 : 0.75),
+          secondaryColor.withValues(alpha: isDark ? 0.95 : 0.75),
           Colors.transparent,
         ],
-        transform: GradientRotation(counterAngle),
+        stops: const [0.0, 0.25, 0.65, 0.85, 1.0],
+        transform: GradientRotation(innerAngle),
       ).createShader(Rect.fromCircle(center: center, radius: innerRadius))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
+      ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: innerRadius),
       0,
-      math.pi * 1.5,
+      math.pi * 1.4,
       false,
       arcPaint,
     );
@@ -1277,20 +1220,23 @@ class _BiometricSentinelPainter extends CustomPainter {
     // 4. Kinetic Biometric Optical Iris Core
     Offset lookOffset;
     if (isIdentifierFocused) {
-      lookOffset = const Offset(0.0, 0.50); // Attentively gazing down directly into input field
+      lookOffset = const Offset(0.0, 0.48); // Attentively gazing down directly into input field
     } else if (isPasswordFocused) {
-      lookOffset = const Offset(0.0, 0.15);
+      lookOffset = const Offset(0.0, 0.12);
     } else {
+      // Natural cursor tracking with subtle harmonic micro-gaze breathing
+      final idleDriftX = math.cos(waveProgress * 2 * math.pi) * 0.04;
+      final idleDriftY = math.sin(waveProgress * 2 * math.pi) * 0.04;
       lookOffset = Offset(
-        mousePos.dx.clamp(-0.6, 0.6),
-        mousePos.dy.clamp(-0.6, 0.6),
+        (mousePos.dx + idleDriftX).clamp(-0.55, 0.55),
+        (mousePos.dy + idleDriftY).clamp(-0.55, 0.55),
       );
     }
 
     final eyeRadius = radius * 0.50;
     final pupilOffset = Offset(
-      center.dx + lookOffset.dx * (eyeRadius * 0.4),
-      center.dy + lookOffset.dy * (eyeRadius * 0.4),
+      center.dx + lookOffset.dx * (eyeRadius * 0.38),
+      center.dy + lookOffset.dy * (eyeRadius * 0.38),
     );
 
     // Optical Lens Bed
@@ -1320,6 +1266,34 @@ class _BiometricSentinelPainter extends CustomPainter {
       eyeRadius * 0.16,
       gleamPaint,
     );
+
+    // Optical Telemetry Reticle Brackets (4 Target Acquisition Corners)
+    if (shieldProgress < 0.8) {
+      final bracketAlpha = (1.0 - shieldProgress) * (isDark ? 0.45 : 0.25);
+      final bracketPaint = Paint()
+        ..color = primaryColor.withValues(alpha: bracketAlpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2;
+
+      final bSpan = eyeRadius * 0.85 + (pulseProgress * 2.0);
+      const bLen = 5.0;
+
+      // Top-Left
+      canvas.drawLine(Offset(center.dx - bSpan, center.dy - bSpan + bLen), Offset(center.dx - bSpan, center.dy - bSpan), bracketPaint);
+      canvas.drawLine(Offset(center.dx - bSpan, center.dy - bSpan), Offset(center.dx - bSpan + bLen, center.dy - bSpan), bracketPaint);
+
+      // Top-Right
+      canvas.drawLine(Offset(center.dx + bSpan, center.dy - bSpan + bLen), Offset(center.dx + bSpan, center.dy - bSpan), bracketPaint);
+      canvas.drawLine(Offset(center.dx + bSpan, center.dy - bSpan), Offset(center.dx + bSpan - bLen, center.dy - bSpan), bracketPaint);
+
+      // Bottom-Left
+      canvas.drawLine(Offset(center.dx - bSpan, center.dy + bSpan - bLen), Offset(center.dx - bSpan, center.dy + bSpan), bracketPaint);
+      canvas.drawLine(Offset(center.dx - bSpan, center.dy + bSpan), Offset(center.dx - bSpan + bLen, center.dy + bSpan), bracketPaint);
+
+      // Bottom-Right
+      canvas.drawLine(Offset(center.dx + bSpan, center.dy + bSpan - bLen), Offset(center.dx + bSpan, center.dy + bSpan), bracketPaint);
+      canvas.drawLine(Offset(center.dx + bSpan, center.dy + bSpan), Offset(center.dx + bSpan - bLen, center.dy + bSpan), bracketPaint);
+    }
 
     // 5. Deployable Dual-Interlocking Mechanical Blast Shutters & Cryptographic Enclave
     if (shieldProgress > 0.0) {
