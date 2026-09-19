@@ -27,7 +27,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
   final FocusNode _passwordFocus = FocusNode();
 
   bool _obscurePassword = true;
-  bool _rememberMe = true;
+  bool _rememberMe = false;
   bool _isIdentifierFocused = false;
   bool _isPasswordFocused = false;
   bool _isCapsLockOn = false;
@@ -95,7 +95,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
   }
 
   bool _handleKeyEvent(KeyEvent event) {
-    final isCaps = HardwareKeyboard.instance.lockModesEnabled.contains(KeyboardLockMode.capsLock);
+    final isCaps = HardwareKeyboard.instance.lockModesEnabled.contains(
+      KeyboardLockMode.capsLock,
+    );
     if (isCaps != _isCapsLockOn) {
       setState(() => _isCapsLockOn = isCaps);
     }
@@ -117,8 +119,6 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
     super.dispose();
   }
 
-
-
   void _submitLogin() {
     final identifier = _identifierController.text.trim();
     final password = _passwordController.text.trim();
@@ -138,7 +138,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
           ),
           backgroundColor: const Color(0xFFDC2626),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           margin: const EdgeInsets.all(20),
         ),
       );
@@ -146,12 +148,12 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
     }
 
     context.read<AuthBloc>().add(
-          LoginSubmitted(
-            identifier: identifier,
-            password: password,
-            rememberMe: _rememberMe,
-          ),
-        );
+      LoginSubmitted(
+        identifier: identifier,
+        password: password,
+        rememberMe: _rememberMe,
+      ),
+    );
   }
 
   double _calculatePasswordStrength(String password) {
@@ -175,7 +177,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
         final palette = themeState.currentPalette;
 
         return Scaffold(
-          backgroundColor: isDark ? const Color(0xFF050811) : const Color(0xFFF1F5F9),
+          backgroundColor: isDark
+              ? const Color(0xFF050811)
+              : const Color(0xFFF1F5F9),
           body: MouseRegion(
             onHover: (event) {
               if (size.width > 0 && size.height > 0) {
@@ -196,7 +200,11 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                 // 1. Precision Cyber-Constellation & Gyroscopic Atmosphere
                 Positioned.fill(
                   child: AnimatedBuilder(
-                    animation: Listenable.merge([_rotorController, _pulseController, _waveController]),
+                    animation: Listenable.merge([
+                      _rotorController,
+                      _pulseController,
+                      _waveController,
+                    ]),
                     builder: (context, child) {
                       return CustomPaint(
                         painter: _ExecutiveAtmospherePainter(
@@ -227,8 +235,16 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                   bottom: 44,
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      child: _buildIntegratedConsoleCard(context, isDark, themeState, palette),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      child: _buildIntegratedConsoleCard(
+                        context,
+                        isDark,
+                        themeState,
+                        palette,
+                      ),
                     ),
                   ),
                 ),
@@ -240,12 +256,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                   right: 0,
                   child: Center(
                     child: Text(
-                      'KRISHI BHANDAR • ENTERPRISE ZERO-TRUST ARCHITECTURE • PRO DECK v2.5',
+                      'KRISHI BHANDAR • ADMIN PANEL',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                        color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                        letterSpacing: 1.0,
+                        color: isDark
+                            ? const Color(0xFF475569)
+                            : const Color(0xFF94A3B8),
                       ),
                     ),
                   ),
@@ -259,7 +277,12 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
   }
 
   // --- Top Navigation Header ---
-  Widget _buildHeader(BuildContext context, bool isDark, ThemeState themeState, PaletteConfig palette) {
+  Widget _buildHeader(
+    BuildContext context,
+    bool isDark,
+    ThemeState themeState,
+    PaletteConfig palette,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -307,19 +330,26 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.8,
-                        color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
+                        color: isDark
+                            ? const Color(0xFFF8FAFC)
+                            : const Color(0xFF0F172A),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: palette.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: palette.primary.withValues(alpha: 0.35)),
+                        border: Border.all(
+                          color: palette.primary.withValues(alpha: 0.35),
+                        ),
                       ),
                       child: Text(
-                        'ENTERPRISE OS',
+                        'ADMIN PANEL',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
@@ -340,17 +370,21 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         shape: BoxShape.circle,
                         color: Color(0xFF10B981),
                         boxShadow: [
-                          BoxShadow(color: Color(0xFF10B981), blurRadius: 6, spreadRadius: 1),
+                          BoxShadow(
+                            color: Color(0xFF10B981),
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'OPERATIONS CONTROL PLANE • ASIA-SOUTH1',
+                      'KRISHI BHANDAR ONLINE SYSTEM',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 9.5,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.0,
+                        letterSpacing: 0.8,
                         color: palette.primary,
                       ),
                     ),
@@ -361,81 +395,45 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
           ],
         ),
 
-        // Node Telemetry & Theme Switcher
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF0B1120).withValues(alpha: 0.85)
-                    : Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFF10B981),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'GCP MUMBAI • 11ms',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
-                    ),
-                  ),
-                ],
-              ),
+        // Theme Switcher
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0B1120) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1),
+              width: 1,
             ),
-            const SizedBox(width: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0B1120) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-              child: IconButton(
-                icon: Icon(
-                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                  size: 18,
-                  color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF334155),
-                ),
-                tooltip: isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme',
-                onPressed: () => context.read<ThemeBloc>().add(ToggleDarkMode(isDark)),
-              ),
+            ],
+          ),
+          child: IconButton(
+            icon: Icon(
+              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              size: 18,
+              color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF334155),
             ),
-          ],
+            tooltip: isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme',
+            onPressed: () =>
+                context.read<ThemeBloc>().add(ToggleDarkMode(isDark)),
+          ),
         ),
       ],
     );
   }
 
   // --- Monolithic Integrated Console Card ---
-  Widget _buildIntegratedConsoleCard(BuildContext context, bool isDark, ThemeState themeState, PaletteConfig palette) {
+  Widget _buildIntegratedConsoleCard(
+    BuildContext context,
+    bool isDark,
+    ThemeState themeState,
+    PaletteConfig palette,
+  ) {
     return Transform(
       transform: Matrix4.identity()
         ..setEntry(3, 2, 0.0008)
@@ -445,10 +443,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
       child: Container(
         width: 500,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF080D1A).withValues(alpha: 0.96) : Colors.white.withValues(alpha: 0.98),
+          color: isDark
+              ? const Color(0xFF080D1A).withValues(alpha: 0.96)
+              : Colors.white.withValues(alpha: 0.98),
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
-            color: isDark ? Colors.white.withValues(alpha: 0.14) : const Color(0xFFCBD5E1),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.14)
+                : const Color(0xFFCBD5E1),
             width: 1.2,
           ),
           boxShadow: [
@@ -483,7 +485,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                   ),
                   border: Border(
                     bottom: BorderSide(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFE2E8F0),
                       width: 1,
                     ),
                   ),
@@ -492,22 +496,30 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                   children: [
                     // Security Telemetry Status Row
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: palette.primary.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: palette.primary.withValues(alpha: 0.35)),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: palette.primary.withValues(alpha: 0.35),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.lock_outline_rounded, size: 12, color: palette.primary),
+                              Icon(
+                                Icons.eco_rounded,
+                                size: 12,
+                                color: palette.primary,
+                              ),
                               const SizedBox(width: 5),
                               Text(
-                                'ZERO-TRUST GATEWAY',
+                                'KRISHI BHANDAR',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w800,
@@ -519,11 +531,20 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.30)),
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(
+                                0xFF10B981,
+                              ).withValues(alpha: 0.30),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -535,13 +556,17 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                   shape: BoxShape.circle,
                                   color: Color(0xFF10B981),
                                   boxShadow: [
-                                    BoxShadow(color: Color(0xFF10B981), blurRadius: 6, spreadRadius: 1),
+                                    BoxShadow(
+                                      color: Color(0xFF10B981),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'NODE_01 ACTIVE',
+                                'SECURE LOGIN',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w800,
@@ -556,10 +581,10 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 16),
 
-                    // High-Precision Biometric Sentinel Iris Stage
+                    // Modern Animated Eye Stage
                     SizedBox(
-                      width: 148,
-                      height: 148,
+                      width: 132,
+                      height: 132,
                       child: AnimatedBuilder(
                         animation: Listenable.merge([
                           _rotorController,
@@ -593,23 +618,27 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
 
                     const SizedBox(height: 14),
                     Text(
-                      'Authorized Admin Sign In',
+                      'Admin Sign In',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.4,
-                        color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
+                        color: isDark
+                            ? const Color(0xFFF8FAFC)
+                            : const Color(0xFF0F172A),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Enter your enterprise administrative credentials to proceed',
+                      'Please enter your email and password to log in',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -626,7 +655,11 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         SnackBar(
                           content: Row(
                             children: [
-                              const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+                              const Icon(
+                                Icons.error_outline_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
@@ -641,7 +674,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                           ),
                           backgroundColor: const Color(0xFFDC2626),
                           behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           margin: const EdgeInsets.all(20),
                         ),
                       );
@@ -649,7 +684,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                   },
                   builder: (context, authState) {
                     final isLoading = authState.status == AuthStatus.loading;
-                    final passwordStrength = _calculatePasswordStrength(_passwordController.text);
+                    final passwordStrength = _calculatePasswordStrength(
+                      _passwordController.text,
+                    );
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -659,21 +696,25 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'ADMIN IDENTIFIER',
+                              'EMAIL / USERNAME',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.7,
-                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                color: isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : const Color(0xFF334155),
                               ),
                             ),
                             Text(
-                              'WORK EMAIL / ID',
+                              'EMAIL OR ID',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.5,
-                                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                color: isDark
+                                    ? const Color(0xFF64748B)
+                                    : const Color(0xFF94A3B8),
                               ),
                             ),
                           ],
@@ -681,18 +722,24 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         const SizedBox(height: 6),
                         Container(
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF060912) : const Color(0xFFF8FAFC),
+                            color: isDark
+                                ? const Color(0xFF060912)
+                                : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: _isIdentifierFocused
                                   ? palette.primary
-                                  : (isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)),
+                                  : (isDark
+                                        ? const Color(0xFF1E293B)
+                                        : const Color(0xFFCBD5E1)),
                               width: _isIdentifierFocused ? 1.6 : 1.0,
                             ),
                             boxShadow: _isIdentifierFocused
                                 ? [
                                     BoxShadow(
-                                      color: palette.primary.withValues(alpha: 0.25),
+                                      color: palette.primary.withValues(
+                                        alpha: 0.25,
+                                      ),
                                       blurRadius: 16,
                                       offset: const Offset(0, 2),
                                     ),
@@ -706,32 +753,47 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                             decoration: InputDecoration(
                               hintText: 'admin@krishibhandar.in',
                               hintStyle: GoogleFonts.plusJakartaSans(
                                 fontSize: 13.5,
-                                color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                                color: isDark
+                                    ? const Color(0xFF475569)
+                                    : const Color(0xFF94A3B8),
                               ),
                               prefixIcon: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
                                   color: _isIdentifierFocused
                                       ? palette.primary.withValues(alpha: 0.18)
-                                      : (isDark ? const Color(0xFF111827) : const Color(0xFFE2E8F0)),
+                                      : (isDark
+                                            ? const Color(0xFF111827)
+                                            : const Color(0xFFE2E8F0)),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
-                                  Icons.fingerprint_rounded,
+                                  Icons.person_outline_rounded,
                                   size: 18,
-                                  color: _isIdentifierFocused ? palette.primary : const Color(0xFF64748B),
+                                  color: _isIdentifierFocused
+                                      ? palette.primary
+                                      : const Color(0xFF64748B),
                                 ),
                               ),
                               suffixIcon: _identifierController.text.isNotEmpty
                                   ? IconButton(
-                                      icon: const Icon(Icons.cancel_outlined, size: 18, color: Color(0xFF64748B)),
+                                      icon: const Icon(
+                                        Icons.cancel_outlined,
+                                        size: 18,
+                                        color: Color(0xFF64748B),
+                                      ),
                                       onPressed: () {
                                         setState(() {
                                           _identifierController.clear();
@@ -740,7 +802,10 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                     )
                                   : null,
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 15,
+                              ),
                             ),
                             onChanged: (_) => setState(() {}),
                             onSubmitted: (_) {
@@ -756,19 +821,25 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'SECURITY ACCESS KEY',
+                              'PASSWORD',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.7,
-                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                color: isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : const Color(0xFF334155),
                               ),
                             ),
                             if (_isCapsLockOn)
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.keyboard_capslock_rounded, size: 14, color: palette.accent),
+                                  Icon(
+                                    Icons.keyboard_capslock_rounded,
+                                    size: 14,
+                                    color: palette.accent,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'CAPS LOCK ON',
@@ -783,12 +854,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                               )
                             else
                               Text(
-                                'AES-256 GCM',
+                                'PRIVATE',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.5,
-                                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                  color: isDark
+                                      ? const Color(0xFF64748B)
+                                      : const Color(0xFF94A3B8),
                                 ),
                               ),
                           ],
@@ -796,18 +869,24 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         const SizedBox(height: 6),
                         Container(
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF060912) : const Color(0xFFF8FAFC),
+                            color: isDark
+                                ? const Color(0xFF060912)
+                                : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: _isPasswordFocused
                                   ? palette.primary
-                                  : (isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)),
+                                  : (isDark
+                                        ? const Color(0xFF1E293B)
+                                        : const Color(0xFFCBD5E1)),
                               width: _isPasswordFocused ? 1.6 : 1.0,
                             ),
                             boxShadow: _isPasswordFocused
                                 ? [
                                     BoxShadow(
-                                      color: palette.primary.withValues(alpha: 0.25),
+                                      color: palette.primary.withValues(
+                                        alpha: 0.25,
+                                      ),
                                       blurRadius: 16,
                                       offset: const Offset(0, 2),
                                     ),
@@ -822,33 +901,46 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               letterSpacing: _obscurePassword ? 2.5 : 0.4,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                             decoration: InputDecoration(
-                              hintText: '••••••••••••',
+                              hintText: 'Enter your password',
                               hintStyle: GoogleFonts.plusJakartaSans(
                                 fontSize: 13.5,
                                 letterSpacing: 0,
-                                color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                                color: isDark
+                                    ? const Color(0xFF475569)
+                                    : const Color(0xFF94A3B8),
                               ),
                               prefixIcon: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
                                   color: _isPasswordFocused
                                       ? palette.primary.withValues(alpha: 0.18)
-                                      : (isDark ? const Color(0xFF111827) : const Color(0xFFE2E8F0)),
+                                      : (isDark
+                                            ? const Color(0xFF111827)
+                                            : const Color(0xFFE2E8F0)),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
-                                  Icons.shield_outlined,
+                                  Icons.lock_outline_rounded,
                                   size: 18,
-                                  color: _isPasswordFocused ? palette.primary : const Color(0xFF64748B),
+                                  color: _isPasswordFocused
+                                      ? palette.primary
+                                      : const Color(0xFF64748B),
                                 ),
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
                                   size: 19,
                                   color: const Color(0xFF64748B),
                                 ),
@@ -866,7 +958,10 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                 },
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 15,
+                              ),
                             ),
                             onChanged: (_) => setState(() {}),
                             onSubmitted: (_) => _submitLogin(),
@@ -886,16 +981,41 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                       borderRadius: BorderRadius.circular(3),
                                       color: passwordStrength >= (s * 0.25)
                                           ? (passwordStrength > 0.75
-                                              ? const Color(0xFF10B981)
-                                              : (passwordStrength > 0.5 ? const Color(0xFF14B8A6) : (passwordStrength > 0.25 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444))))
-                                          : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                                                ? const Color(0xFF10B981)
+                                                : (passwordStrength > 0.5
+                                                      ? const Color(0xFF14B8A6)
+                                                      : (passwordStrength > 0.25
+                                                            ? const Color(
+                                                                0xFFF59E0B,
+                                                              )
+                                                            : const Color(
+                                                                0xFFEF4444,
+                                                              ))))
+                                          : (isDark
+                                                ? const Color(0xFF1E293B)
+                                                : const Color(0xFFE2E8F0)),
                                       boxShadow: passwordStrength >= (s * 0.25)
                                           ? [
                                               BoxShadow(
-                                                color: (passwordStrength > 0.75
-                                                        ? const Color(0xFF10B981)
-                                                        : (passwordStrength > 0.5 ? const Color(0xFF14B8A6) : (passwordStrength > 0.25 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444))))
-                                                    .withValues(alpha: 0.5),
+                                                color:
+                                                    (passwordStrength > 0.75
+                                                            ? const Color(
+                                                                0xFF10B981,
+                                                              )
+                                                            : (passwordStrength >
+                                                                      0.5
+                                                                  ? const Color(
+                                                                      0xFF14B8A6,
+                                                                    )
+                                                                  : (passwordStrength >
+                                                                            0.25
+                                                                        ? const Color(
+                                                                            0xFFF59E0B,
+                                                                          )
+                                                                        : const Color(
+                                                                            0xFFEF4444,
+                                                                          ))))
+                                                        .withValues(alpha: 0.5),
                                                 blurRadius: 6,
                                               ),
                                             ]
@@ -908,14 +1028,22 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                               const SizedBox(width: 10),
                               Text(
                                 passwordStrength > 0.75
-                                    ? 'CRYPTO-OPTIMAL'
-                                    : (passwordStrength > 0.5 ? 'HIGH SECURITY' : (passwordStrength > 0.25 ? 'STANDARD' : 'LOW ENTROPY')),
+                                    ? 'VERY STRONG'
+                                    : (passwordStrength > 0.5
+                                          ? 'STRONG'
+                                          : (passwordStrength > 0.25
+                                                ? 'MEDIUM'
+                                                : 'WEAK')),
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w800,
                                   color: passwordStrength > 0.75
                                       ? const Color(0xFF10B981)
-                                      : (passwordStrength > 0.5 ? const Color(0xFF14B8A6) : (passwordStrength > 0.25 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444))),
+                                      : (passwordStrength > 0.5
+                                            ? const Color(0xFF14B8A6)
+                                            : (passwordStrength > 0.25
+                                                  ? const Color(0xFFF59E0B)
+                                                  : const Color(0xFFEF4444))),
                                 ),
                               ),
                             ],
@@ -924,13 +1052,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
 
                         const SizedBox(height: 16),
 
-                        // Remember Device & TLS Badge Row
+                        // Remember Device & Security Row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Flexible(
                               child: InkWell(
-                                onTap: () => setState(() => _rememberMe = !_rememberMe),
+                                onTap: () =>
+                                    setState(() => _rememberMe = !_rememberMe),
                                 borderRadius: BorderRadius.circular(6),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -941,19 +1070,27 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                       child: Checkbox(
                                         value: _rememberMe,
                                         activeColor: palette.primary,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
                                         onChanged: (val) {
-                                          setState(() => _rememberMe = val ?? true);
+                                          setState(
+                                            () => _rememberMe = val ?? false,
+                                          );
                                         },
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Remember session',
+                                      'Remember me',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                        color: isDark
+                                            ? const Color(0xFFCBD5E1)
+                                            : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -964,14 +1101,20 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.verified_user_outlined, size: 14, color: palette.primary),
+                                Icon(
+                                  Icons.verified_user_outlined,
+                                  size: 14,
+                                  color: palette.primary,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'TLS 1.3 Active',
+                                  'Safe & Secure',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                    color: isDark
+                                        ? const Color(0xFF64748B)
+                                        : const Color(0xFF94A3B8),
                                   ),
                                 ),
                               ],
@@ -995,7 +1138,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                 ? []
                                 : [
                                     BoxShadow(
-                                      color: palette.primary.withValues(alpha: 0.45),
+                                      color: palette.primary.withValues(
+                                        alpha: 0.45,
+                                      ),
                                       blurRadius: 24,
                                       offset: const Offset(0, 8),
                                     ),
@@ -1016,7 +1161,10 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                 ? const SizedBox(
                                     width: 22,
                                     height: 22,
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.2,
+                                    ),
                                   )
                                 : Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1030,7 +1178,10 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                         ),
                                       ),
                                       const SizedBox(width: 10),
-                                      const Icon(Icons.arrow_forward_rounded, size: 19),
+                                      const Icon(
+                                        Icons.arrow_forward_rounded,
+                                        size: 19,
+                                      ),
                                     ],
                                   ),
                           ),
@@ -1039,11 +1190,13 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         const SizedBox(height: 12),
                         Center(
                           child: Text(
-                            'Press ↵ Enter to authenticate directly with zero-trust token',
+                            'Press Enter key to sign in',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
-                              color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                              color: isDark
+                                  ? const Color(0xFF475569)
+                                  : const Color(0xFF94A3B8),
                             ),
                           ),
                         ),
@@ -1060,9 +1213,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
   }
 }
 
-/// High-Precision Kinetic Biometric Sentinel Painter:
-/// Renders multi-ring tachymeter dials, 3D optical gaze tracking, laser scan sweeps,
-/// and deployable titanium vault shield with laser lock alignment.
+/// Clean, Modern & Expressive Animated Eye Painter:
+/// - Awake: Responsive gaze-tracking iris with crisp specular gleams and gentle orbiting glow.
+/// - Closed: Silky smooth eyelid descent into a sleek curved lash arc with delightful keystroke micro-bounce.
 class _BiometricSentinelPainter extends CustomPainter {
   final double rotorProgress;
   final double pulseProgress;
@@ -1095,409 +1248,279 @@ class _BiometricSentinelPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 4;
+    final outerRadius = size.width / 2 - 6;
 
-    // 1. Core Ambient Radiation Halo
-    final haloRadius = radius + 6 + (pulseProgress * 6);
+    // 1. Soft Ambient Halo Glow
+    final haloRadius = outerRadius + 4 + (pulseProgress * 4);
     final haloPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          primaryColor.withValues(alpha: isDark ? 0.35 : 0.20),
-          secondaryColor.withValues(alpha: isDark ? 0.12 : 0.05),
+          primaryColor.withValues(alpha: isDark ? 0.22 : 0.12),
+          secondaryColor.withValues(alpha: isDark ? 0.08 : 0.03),
           Colors.transparent,
         ],
-        stops: const [0.0, 0.6, 1.0],
+        stops: const [0.0, 0.65, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: haloRadius));
     canvas.drawCircle(center, haloRadius, haloPaint);
 
-    // 2. High-Precision Outer Tachymeter & Orbital Satellite Ring
-    final rotorAngle = rotorProgress * 2 * math.pi;
-
-    // Outer Precision Guide Track
-    final outerRingPaint = Paint()
-      ..color = (isDark ? Colors.white : const Color(0xFF0F172A)).withValues(alpha: isDark ? 0.12 : 0.08)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    canvas.drawCircle(center, radius, outerRingPaint);
-
-    // 24-Point Precision Tachymeter Gauge Ticks
-    const int tickCount = 24;
-    final tickPaint = Paint()
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < tickCount; i++) {
-      final tickAngle = rotorAngle + (i * 2 * math.pi / tickCount);
-      final isCardinal = i % 6 == 0; // 0, 6, 12, 18 (90 deg intervals)
-      final isSubMajor = i % 2 == 0;
-
-      final double tickLen = isCardinal ? 6.5 : (isSubMajor ? 4.0 : 2.5);
-      final double strokeW = isCardinal ? 1.6 : 1.0;
-      final double alpha = isCardinal
-          ? (isDark ? 0.90 : 0.65)
-          : (isSubMajor ? (isDark ? 0.45 : 0.30) : (isDark ? 0.20 : 0.12));
-
-      tickPaint
-        ..color = primaryColor.withValues(alpha: alpha)
-        ..strokeWidth = strokeW;
-
-      final p1 = Offset(
-        center.dx + math.cos(tickAngle) * (radius - tickLen),
-        center.dy + math.sin(tickAngle) * (radius - tickLen),
-      );
-      final p2 = Offset(
-        center.dx + math.cos(tickAngle) * radius,
-        center.dy + math.sin(tickAngle) * radius,
-      );
-      canvas.drawLine(p1, p2, tickPaint);
-    }
-
-    // Two Counter-Orbiting Luminous Satellite Nodes on Outer Track
-    final satAngle1 = rotorAngle * 1.5;
-    final satPos1 = Offset(center.dx + math.cos(satAngle1) * radius, center.dy + math.sin(satAngle1) * radius);
-    final satPaint1 = Paint()..color = primaryColor.withValues(alpha: isDark ? 0.95 : 0.75);
-    canvas.drawCircle(satPos1, 2.6, satPaint1);
-    canvas.drawCircle(satPos1, 1.2, Paint()..color = Colors.white.withValues(alpha: 0.95));
-
-    final satAngle2 = -rotorAngle * 1.2 + math.pi;
-    final satPos2 = Offset(center.dx + math.cos(satAngle2) * radius, center.dy + math.sin(satAngle2) * radius);
-    final satPaint2 = Paint()..color = secondaryColor.withValues(alpha: isDark ? 0.90 : 0.70);
-    canvas.drawCircle(satPos2, 2.2, satPaint2);
-
-    // 3. Mid-Tier Counter-Rotating Segmented Telemetry Arcs
-    final midRadius = radius * 0.84;
-    final midAngle = -rotorAngle * 0.8;
-
-    final midArcPaint = Paint()
-      ..color = primaryColor.withValues(alpha: isDark ? 0.35 : 0.18)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.3
-      ..strokeCap = StrokeCap.round;
-
-    // Dual 70-Degree Symmetrical Orbital Arcs
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: midRadius),
-      midAngle,
-      math.pi * 0.40,
-      false,
-      midArcPaint,
-    );
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: midRadius),
-      midAngle + math.pi,
-      math.pi * 0.40,
-      false,
-      midArcPaint,
-    );
-
-    // 4. Inner Luminous Laser Sweep Turbine Arc
-    final innerRadius = radius * 0.70;
-    final innerAngle = rotorAngle * 1.1;
-
-    final arcPaint = Paint()
+    // 2. Clean, Minimalist Orbit Ring with Single Luminous Satellite
+    final orbitPaint = Paint()
       ..shader = SweepGradient(
         colors: [
-          Colors.transparent,
-          primaryColor.withValues(alpha: 0.2),
-          primaryColor.withValues(alpha: isDark ? 0.95 : 0.75),
-          secondaryColor.withValues(alpha: isDark ? 0.95 : 0.75),
-          Colors.transparent,
+          primaryColor.withValues(alpha: 0.1),
+          primaryColor.withValues(alpha: isDark ? 0.6 : 0.4),
+          secondaryColor.withValues(alpha: isDark ? 0.6 : 0.4),
+          primaryColor.withValues(alpha: 0.1),
         ],
-        stops: const [0.0, 0.25, 0.65, 0.85, 1.0],
-        transform: GradientRotation(innerAngle),
-      ).createShader(Rect.fromCircle(center: center, radius: innerRadius))
+        transform: GradientRotation(rotorProgress * 2 * math.pi),
+      ).createShader(Rect.fromCircle(center: center, radius: outerRadius))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = 1.6;
+    canvas.drawCircle(center, outerRadius, orbitPaint);
 
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: innerRadius),
-      0,
-      math.pi * 1.4,
-      false,
-      arcPaint,
+    // Single Floating Satellite Glow Bead
+    final satAngle = rotorProgress * 2 * math.pi;
+    final satPos = Offset(
+      center.dx + math.cos(satAngle) * outerRadius,
+      center.dy + math.sin(satAngle) * outerRadius,
     );
+    canvas.drawCircle(
+      satPos,
+      3.0,
+      Paint()..color = primaryColor.withValues(alpha: 0.95),
+    );
+    canvas.drawCircle(satPos, 1.5, Paint()..color = Colors.white);
 
-    // 4. Kinetic Biometric Optical Iris Core
+    // 3. Eye Sclera Bed (Smooth, Original Proportional Circle)
+    final eyeRadius = outerRadius * 0.52;
+    final scleraPaint = Paint()
+      ..shader = RadialGradient(
+        colors: isDark
+            ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+            : [const Color(0xFFFFFFFF), const Color(0xFFE2E8F0)],
+        stops: const [0.6, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: eyeRadius));
+
+    // Draw eye base
+    canvas.drawCircle(center, eyeRadius, scleraPaint);
+
+    // Subtle Eye Inner Border
+    final eyeBorderPaint = Paint()
+      ..color = (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))
+          .withValues(alpha: 0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(center, eyeRadius, eyeBorderPaint);
+
+    // 4. Open Eye (Gaze-Tracking Iris & Gleam)
+    // Calculate Look Direction
     Offset lookOffset;
     if (isIdentifierFocused) {
-      lookOffset = const Offset(0.0, 0.48); // Attentively gazing down directly into input field
+      lookOffset = const Offset(
+        0.0,
+        0.45,
+      ); // Looking down attentively at identifier input
     } else if (isPasswordFocused) {
-      lookOffset = const Offset(0.0, 0.12);
+      lookOffset = const Offset(0.0, 0.15);
     } else {
-      // Natural cursor tracking with subtle harmonic micro-gaze breathing
-      final idleDriftX = math.cos(waveProgress * 2 * math.pi) * 0.04;
-      final idleDriftY = math.sin(waveProgress * 2 * math.pi) * 0.04;
+      // Smooth natural gaze with subtle idle drift
+      final idleX = math.cos(waveProgress * 2 * math.pi) * 0.05;
+      final idleY = math.sin(waveProgress * 2 * math.pi) * 0.05;
       lookOffset = Offset(
-        (mousePos.dx + idleDriftX).clamp(-0.55, 0.55),
-        (mousePos.dy + idleDriftY).clamp(-0.55, 0.55),
+        (mousePos.dx + idleX).clamp(-0.5, 0.5),
+        (mousePos.dy + idleY).clamp(-0.5, 0.5),
       );
     }
 
-    final eyeRadius = radius * 0.50;
-    final pupilOffset = Offset(
-      center.dx + lookOffset.dx * (eyeRadius * 0.38),
-      center.dy + lookOffset.dy * (eyeRadius * 0.38),
+    final pupilMaxShift = eyeRadius * 0.40;
+    final pupilCenter = Offset(
+      center.dx + lookOffset.dx * pupilMaxShift,
+      center.dy +
+          lookOffset.dy * pupilMaxShift +
+          (shieldProgress * 8.0), // Glides down when closing
     );
 
-    // Optical Lens Bed
-    final lensBedPaint = Paint()
-      ..shader = RadialGradient(
-        colors: isDark
-            ? [const Color(0xFF0F2338), const Color(0xFF040812)]
-            : [const Color(0xFFFFFFFF), const Color(0xFFE2E8F0)],
-      ).createShader(Rect.fromCircle(center: center, radius: eyeRadius));
-    canvas.drawCircle(center, eyeRadius, lensBedPaint);
-
-    // Glowing Concentric Iris
-    final irisPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          primaryColor,
-          secondaryColor,
-          const Color(0xFF064E3B),
-        ],
-      ).createShader(Rect.fromCircle(center: pupilOffset, radius: eyeRadius * 0.6));
-    canvas.drawCircle(pupilOffset, eyeRadius * 0.58, irisPaint);
-
-    // Specular Catchlight
-    final gleamPaint = Paint()..color = Colors.white.withValues(alpha: 0.95);
-    canvas.drawCircle(
-      Offset(pupilOffset.dx - eyeRadius * 0.18, pupilOffset.dy - eyeRadius * 0.18),
-      eyeRadius * 0.16,
-      gleamPaint,
+    // Clip to Eye Ball
+    canvas.save();
+    canvas.clipPath(
+      Path()..addOval(Rect.fromCircle(center: center, radius: eyeRadius)),
     );
 
-    // Optical Telemetry Reticle Brackets (4 Target Acquisition Corners)
-    if (shieldProgress < 0.8) {
-      final bracketAlpha = (1.0 - shieldProgress) * (isDark ? 0.45 : 0.25);
-      final bracketPaint = Paint()
-        ..color = primaryColor.withValues(alpha: bracketAlpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2;
+    if (shieldProgress < 1.0) {
+      final irisRadius = eyeRadius * 0.58;
 
-      final bSpan = eyeRadius * 0.85 + (pulseProgress * 2.0);
-      const bLen = 5.0;
+      // Glowing Concentric Iris (Emerald to Cyan to Deep Forest Green) - No black color
+      final irisPaint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            primaryColor,
+            secondaryColor,
+            const Color(0xFF064E3B),
+          ],
+          stops: const [0.0, 0.65, 1.0],
+        ).createShader(
+          Rect.fromCircle(center: pupilCenter, radius: irisRadius),
+        );
+      canvas.drawCircle(pupilCenter, irisRadius, irisPaint);
 
-      // Top-Left
-      canvas.drawLine(Offset(center.dx - bSpan, center.dy - bSpan + bLen), Offset(center.dx - bSpan, center.dy - bSpan), bracketPaint);
-      canvas.drawLine(Offset(center.dx - bSpan, center.dy - bSpan), Offset(center.dx - bSpan + bLen, center.dy - bSpan), bracketPaint);
+      // Major Specular Catchlight (Gleam)
+      final gleamMajorOffset = Offset(
+        pupilCenter.dx - irisRadius * 0.28,
+        pupilCenter.dy - irisRadius * 0.28,
+      );
+      canvas.drawCircle(
+        gleamMajorOffset,
+        irisRadius * 0.24,
+        Paint()..color = Colors.white.withValues(alpha: 0.95),
+      );
 
-      // Top-Right
-      canvas.drawLine(Offset(center.dx + bSpan, center.dy - bSpan + bLen), Offset(center.dx + bSpan, center.dy - bSpan), bracketPaint);
-      canvas.drawLine(Offset(center.dx + bSpan, center.dy - bSpan), Offset(center.dx + bSpan - bLen, center.dy - bSpan), bracketPaint);
-
-      // Bottom-Left
-      canvas.drawLine(Offset(center.dx - bSpan, center.dy + bSpan - bLen), Offset(center.dx - bSpan, center.dy + bSpan), bracketPaint);
-      canvas.drawLine(Offset(center.dx - bSpan, center.dy + bSpan), Offset(center.dx - bSpan + bLen, center.dy + bSpan), bracketPaint);
-
-      // Bottom-Right
-      canvas.drawLine(Offset(center.dx + bSpan, center.dy + bSpan - bLen), Offset(center.dx + bSpan, center.dy + bSpan), bracketPaint);
-      canvas.drawLine(Offset(center.dx + bSpan, center.dy + bSpan), Offset(center.dx + bSpan - bLen, center.dy + bSpan), bracketPaint);
+      // Minor Specular Catchlight
+      final gleamMinorOffset = Offset(
+        pupilCenter.dx + irisRadius * 0.32,
+        pupilCenter.dy + irisRadius * 0.26,
+      );
+      canvas.drawCircle(
+        gleamMinorOffset,
+        irisRadius * 0.12,
+        Paint()..color = Colors.white.withValues(alpha: 0.80),
+      );
     }
 
-    // 5. Deployable Dual-Interlocking Mechanical Blast Shutters & Cryptographic Enclave
+    // 5. Smooth Eyelid Descent (Closure)
     if (shieldProgress > 0.0) {
       final easedProgress = Curves.easeInOutCubic.transform(shieldProgress);
-      final slideOffset = (1.0 - easedProgress) * (radius * 1.15);
+      final lidY = center.dy - eyeRadius + (easedProgress * eyeRadius * 2.0);
 
-      canvas.save();
-      // Clip to circular sentinel perimeter
-      canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: radius + 1)));
-
-      // 5A. Underlying Hexagonal Security Honeycomb Forcefield
-      final hexPaint = Paint()
-        ..color = primaryColor.withValues(alpha: (isDark ? 0.35 : 0.18) * easedProgress)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.0;
-
-      const hexSize = 14.0;
-      final hexW = hexSize * math.sqrt(3);
-      final hexH = hexSize * 1.5;
-
-      for (double y = center.dy - radius; y <= center.dy + radius; y += hexH) {
-        for (double x = center.dx - radius; x <= center.dx + radius; x += hexW) {
-          final hPath = Path();
-          for (int h = 0; h < 6; h++) {
-            final angle = h * math.pi / 3 - math.pi / 6;
-            final hx = x + hexSize * math.cos(angle);
-            final hy = y + hexSize * math.sin(angle);
-            if (h == 0) {
-              hPath.moveTo(hx, hy);
-            } else {
-              hPath.lineTo(hx, hy);
-            }
-          }
-          hPath.close();
-          canvas.drawPath(hPath, hexPaint);
-        }
-      }
-
-      // 5B. Top Mechanical Carbon-Titanium Shutter Blade
-      final topShutterY = center.dy - slideOffset;
-      final topPath = Path()
-        ..moveTo(center.dx - radius - 4, center.dy - radius - 4)
-        ..lineTo(center.dx + radius + 4, center.dy - radius - 4)
-        ..lineTo(center.dx + radius + 4, topShutterY + 4)
-        ..lineTo(center.dx, topShutterY + 14) // Interlocking Chevron Tongue
-        ..lineTo(center.dx - radius - 4, topShutterY + 4)
+      // Upper Eyelid Cover
+      final lidPath = Path()
+        ..moveTo(center.dx - eyeRadius - 4, center.dy - eyeRadius - 4)
+        ..lineTo(center.dx + eyeRadius + 4, center.dy - eyeRadius - 4)
+        ..lineTo(center.dx + eyeRadius + 4, lidY)
+        ..quadraticBezierTo(
+          center.dx,
+          lidY + (1.0 - easedProgress) * 12,
+          center.dx - eyeRadius - 4,
+          lidY,
+        )
         ..close();
 
-      final topGradient = LinearGradient(
-        colors: isDark
-            ? [const Color(0xFF0B132B), const Color(0xFF1C2541), const Color(0xFF0B132B)]
-            : [const Color(0xFFE2E8F0), const Color(0xFFCBD5E1), const Color(0xFF94A3B8)],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
+      final lidPaint = Paint()
+        ..shader = LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+              : [const Color(0xFFF8FAFC), const Color(0xFFE2E8F0)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ).createShader(Rect.fromCircle(center: center, radius: eyeRadius));
+      canvas.drawPath(lidPath, lidPaint);
 
-      final shutterFillPaint = Paint()..shader = topGradient;
-      canvas.drawPath(topPath, shutterFillPaint);
-
-      // Top Shutter Bevel & Seam Highlight
+      // Eyelid Seam Glow
       final seamPaint = Paint()
-        ..color = primaryColor.withValues(alpha: isDark ? 0.85 : 0.6)
+        ..color = primaryColor.withValues(alpha: 0.6 * easedProgress)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6;
+        ..strokeWidth = 1.5;
+      final seamPath = Path()
+        ..moveTo(center.dx - eyeRadius * 0.8, lidY)
+        ..quadraticBezierTo(
+          center.dx,
+          lidY + (1.0 - easedProgress) * 12,
+          center.dx + eyeRadius * 0.8,
+          lidY,
+        );
+      canvas.drawPath(seamPath, seamPaint);
+    }
 
-      final topSeamPath = Path()
-        ..moveTo(center.dx - radius - 4, topShutterY + 4)
-        ..lineTo(center.dx, topShutterY + 14)
-        ..lineTo(center.dx + radius + 4, topShutterY + 4);
-      canvas.drawPath(topSeamPath, seamPaint);
+    canvas.restore(); // Restore Sclera Clip
 
-      // 5C. Bottom Mechanical Carbon-Titanium Shutter Blade
-      final bottomShutterY = center.dy + slideOffset;
-      final bottomPath = Path()
-        ..moveTo(center.dx - radius - 4, center.dy + radius + 4)
-        ..lineTo(center.dx + radius + 4, center.dy + radius + 4)
-        ..lineTo(center.dx + radius + 4, bottomShutterY + 4)
-        ..lineTo(center.dx, bottomShutterY + 14) // Recessed Chevron Groove
-        ..lineTo(center.dx - radius - 4, bottomShutterY + 4)
-        ..close();
+    // 6. Charming Closed Eye Smile Lash Arc & Keystroke Bounce
+    if (shieldProgress > 0.30) {
+      final closedAlpha = ((shieldProgress - 0.30) / 0.70).clamp(0.0, 1.0);
 
-      final bottomGradient = LinearGradient(
-        colors: isDark
-            ? [const Color(0xFF1C2541), const Color(0xFF0B132B), const Color(0xFF030712)]
-            : [const Color(0xFFCBD5E1), const Color(0xFF94A3B8), const Color(0xFF64748B)],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
+      // Subtle Keystroke Bounce / Micro-Wink
+      final bounceY = typingLength > 0
+          ? (math.sin(typingLength * 2.0 + waveProgress * 4 * math.pi) * 2.2)
+          : (math.sin(waveProgress * 2 * math.pi) * 0.8);
 
-      canvas.drawPath(bottomPath, Paint()..shader = bottomGradient);
+      final arcCenter = Offset(center.dx, center.dy + 2 + bounceY);
+      final arcWidth = eyeRadius * 0.72;
 
-      final bottomSeamPath = Path()
-        ..moveTo(center.dx - radius - 4, bottomShutterY + 4)
-        ..lineTo(center.dx, bottomShutterY + 14)
-        ..lineTo(center.dx + radius + 4, bottomShutterY + 4);
-      canvas.drawPath(
-        bottomSeamPath,
-        Paint()
-          ..color = secondaryColor.withValues(alpha: isDark ? 0.75 : 0.45)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.6,
+      // Closed Lash Curve ◠ (Smooth, Elegant Smile Arc)
+      final lashPath = Path()
+        ..moveTo(arcCenter.dx - arcWidth * 0.5, arcCenter.dy + 3)
+        ..quadraticBezierTo(
+          arcCenter.dx,
+          arcCenter.dy - 10,
+          arcCenter.dx + arcWidth * 0.5,
+          arcCenter.dy + 3,
+        );
+
+      final lashPaint = Paint()
+        ..shader =
+            LinearGradient(
+              colors: [
+                primaryColor.withValues(alpha: closedAlpha),
+                secondaryColor.withValues(alpha: closedAlpha),
+              ],
+            ).createShader(
+              Rect.fromCenter(center: arcCenter, width: arcWidth, height: 14),
+            )
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.8
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawPath(lashPath, lashPaint);
+
+      // 3 Delicate Curved Eyelashes
+      final lashTipPaint = Paint()
+        ..color = primaryColor.withValues(alpha: 0.85 * closedAlpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0
+        ..strokeCap = StrokeCap.round;
+
+      // Left Lash
+      canvas.drawLine(
+        Offset(arcCenter.dx - arcWidth * 0.28, arcCenter.dy - 6),
+        Offset(arcCenter.dx - arcWidth * 0.40, arcCenter.dy - 12),
+        lashTipPaint,
+      );
+      // Center Lash
+      canvas.drawLine(
+        Offset(arcCenter.dx, arcCenter.dy - 9),
+        Offset(arcCenter.dx, arcCenter.dy - 16),
+        lashTipPaint,
+      );
+      // Right Lash
+      canvas.drawLine(
+        Offset(arcCenter.dx + arcWidth * 0.28, arcCenter.dy - 6),
+        Offset(arcCenter.dx + arcWidth * 0.40, arcCenter.dy - 12),
+        lashTipPaint,
       );
 
-      // Mechanical Shutter Grip Ribs
-      final ribPaint = Paint()
-        ..color = (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.08 : 0.06)
-        ..strokeWidth = 1.2;
+      // Floating Soft Sleep / Privacy Sparkles ✦
+      final sparkleAlpha =
+          ((math.sin(waveProgress * 3 * math.pi) + 1.0) * 0.5 * 0.7 + 0.3) *
+          closedAlpha;
+      final sparklePaint = Paint()
+        ..color = secondaryColor.withValues(alpha: sparkleAlpha);
 
-      for (int r = 1; r <= 3; r++) {
-        final rY1 = topShutterY - (r * 12);
-        if (rY1 > center.dy - radius) {
-          canvas.drawLine(Offset(center.dx - radius * 0.5, rY1), Offset(center.dx + radius * 0.5, rY1), ribPaint);
-        }
-        final rY2 = bottomShutterY + (r * 12);
-        if (rY2 < center.dy + radius) {
-          canvas.drawLine(Offset(center.dx - radius * 0.5, rY2), Offset(center.dx + radius * 0.5, rY2), ribPaint);
-        }
-      }
+      // Sparkle 1 (Top-Right)
+      final sp1 = Offset(
+        center.dx + eyeRadius * 0.65,
+        center.dy - eyeRadius * 0.55 + bounceY * 0.5,
+      );
+      canvas.drawCircle(sp1, 2.0, sparklePaint);
+      canvas.drawCircle(
+        sp1,
+        1.0,
+        Paint()..color = Colors.white.withValues(alpha: sparkleAlpha),
+      );
 
-      // 5D. High-Precision Laser Scan Sweep with Ion Glow Beam
-      final scanY = (center.dy - radius * 0.75) + (radius * 1.5 * laserProgress);
-      final laserGlowPaint = Paint()
-        ..shader = LinearGradient(
-          colors: [
-            Colors.transparent,
-            primaryColor.withValues(alpha: 0.85 * easedProgress),
-            Colors.white.withValues(alpha: 0.95 * easedProgress),
-            primaryColor.withValues(alpha: 0.85 * easedProgress),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
-        ).createShader(Rect.fromLTWH(center.dx - radius * 0.85, scanY - 3, radius * 1.7, 6));
-
-      canvas.drawRect(Rect.fromLTWH(center.dx - radius * 0.85, scanY - 1.5, radius * 1.7, 3), laserGlowPaint);
-
-      // 5E. Holographic Cryptographic Lock Core & Vault Dial
-      if (easedProgress > 0.35) {
-        final lockScale = ((easedProgress - 0.35) / 0.65).clamp(0.0, 1.0);
-        final lockCenter = Offset(center.dx, center.dy + 8);
-
-        // Rotating Lock Caliper Ring (Gentle Pace)
-        final dialAngle = rotorProgress * 2 * math.pi;
-        final dialRadius = 24.0 * lockScale;
-        final dialPaint = Paint()
-          ..color = primaryColor.withValues(alpha: isDark ? 0.8 : 0.5)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.4;
-
-        canvas.save();
-        canvas.translate(lockCenter.dx, lockCenter.dy);
-        canvas.rotate(dialAngle);
-        canvas.drawCircle(Offset.zero, dialRadius, dialPaint);
-
-        // Dial Crosshairs
-        for (int c = 0; c < 4; c++) {
-          final cAngle = c * math.pi / 2;
-          final p1 = Offset(math.cos(cAngle) * (dialRadius - 3), math.sin(cAngle) * (dialRadius - 3));
-          final p2 = Offset(math.cos(cAngle) * (dialRadius + 3), math.sin(cAngle) * (dialRadius + 3));
-          canvas.drawLine(p1, p2, dialPaint);
-        }
-        canvas.restore();
-
-        // High-Tech Solid Padlock Shackle & Body
-        final bodyRect = Rect.fromCenter(
-          center: Offset(lockCenter.dx, lockCenter.dy + 4 * lockScale),
-          width: 22 * lockScale,
-          height: 16 * lockScale,
-        );
-
-        final bodyPaint = Paint()
-          ..shader = LinearGradient(
-            colors: [primaryColor, secondaryColor],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ).createShader(bodyRect);
-
-        canvas.drawRRect(RRect.fromRectAndRadius(bodyRect, const Radius.circular(4)), bodyPaint);
-
-        // Padlock Shackle (Drops down into body on lock)
-        final shackleDrop = (1.0 - lockScale) * 4;
-        final shackleRect = Rect.fromCenter(
-          center: Offset(lockCenter.dx, lockCenter.dy - (4 * lockScale) + shackleDrop),
-          width: 14 * lockScale,
-          height: 14 * lockScale,
-        );
-
-        final shacklePaint = Paint()
-          ..color = Colors.white.withValues(alpha: 0.95 * lockScale)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.4 * lockScale
-          ..strokeCap = StrokeCap.round;
-
-        canvas.drawArc(shackleRect, math.pi, math.pi, false, shacklePaint);
-
-        // Central Optical Keyway Core
-        final keywayPaint = Paint()..color = Colors.white.withValues(alpha: 0.95);
-        canvas.drawCircle(Offset(lockCenter.dx, lockCenter.dy + 3 * lockScale), 2.2 * lockScale, keywayPaint);
-        canvas.drawRect(
-          Rect.fromCenter(center: Offset(lockCenter.dx, lockCenter.dy + 6 * lockScale), width: 1.8 * lockScale, height: 3.5 * lockScale),
-          keywayPaint,
-        );
-      }
-
-      canvas.restore();
+      // Sparkle 2 (Top-Left small)
+      final sp2 = Offset(
+        center.dx - eyeRadius * 0.60,
+        center.dy - eyeRadius * 0.40 - bounceY * 0.5,
+      );
+      canvas.drawCircle(sp2, 1.4, sparklePaint);
     }
   }
 
@@ -1512,7 +1535,9 @@ class _BiometricSentinelPainter extends CustomPainter {
         oldDelegate.isIdentifierFocused != isIdentifierFocused ||
         oldDelegate.isPasswordFocused != isPasswordFocused ||
         oldDelegate.typingLength != typingLength ||
-        oldDelegate.primaryColor != primaryColor;
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.secondaryColor != secondaryColor ||
+        oldDelegate.isDark != isDark;
   }
 }
 
@@ -1559,14 +1584,17 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     );
     final aurora1Radius = width * (0.42 + 0.05 * pulseProgress);
     final aurora1Paint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          primaryColor.withValues(alpha: isDark ? 0.20 : 0.07),
-          primaryColor.withValues(alpha: isDark ? 0.08 : 0.02),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.55, 1.0],
-      ).createShader(Rect.fromCircle(center: aurora1Center, radius: aurora1Radius));
+      ..shader =
+          RadialGradient(
+            colors: [
+              primaryColor.withValues(alpha: isDark ? 0.20 : 0.07),
+              primaryColor.withValues(alpha: isDark ? 0.08 : 0.02),
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.55, 1.0],
+          ).createShader(
+            Rect.fromCircle(center: aurora1Center, radius: aurora1Radius),
+          );
     canvas.drawCircle(aurora1Center, aurora1Radius, aurora1Paint);
 
     // Point B: Cyber Cyan / Azure Fluid (Bottom-Right Counter-Drift)
@@ -1577,14 +1605,17 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     );
     final aurora2Radius = width * (0.38 + 0.04 * (1.0 - pulseProgress));
     final aurora2Paint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          secondaryColor.withValues(alpha: isDark ? 0.16 : 0.05),
-          secondaryColor.withValues(alpha: isDark ? 0.06 : 0.015),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.55, 1.0],
-      ).createShader(Rect.fromCircle(center: aurora2Center, radius: aurora2Radius));
+      ..shader =
+          RadialGradient(
+            colors: [
+              secondaryColor.withValues(alpha: isDark ? 0.16 : 0.05),
+              secondaryColor.withValues(alpha: isDark ? 0.06 : 0.015),
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.55, 1.0],
+          ).createShader(
+            Rect.fromCircle(center: aurora2Center, radius: aurora2Radius),
+          );
     canvas.drawCircle(aurora2Center, aurora2Radius, aurora2Paint);
 
     // Point C: Solar Warmth / Electric Indigo Accent (Center-Top Breathing Ray)
@@ -1593,20 +1624,25 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
       height * 0.15 + math.sin(aAngle * 1.2) * 20,
     );
     final aurora3Paint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          const Color(0xFF6366F1).withValues(alpha: isDark ? 0.09 : 0.03),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 1.0],
-      ).createShader(Rect.fromCircle(center: aurora3Center, radius: width * 0.32));
+      ..shader =
+          RadialGradient(
+            colors: [
+              const Color(0xFF6366F1).withValues(alpha: isDark ? 0.09 : 0.03),
+              Colors.transparent,
+            ],
+            stops: const [0.0, 1.0],
+          ).createShader(
+            Rect.fromCircle(center: aurora3Center, radius: width * 0.32),
+          );
     canvas.drawCircle(aurora3Center, width * 0.32, aurora3Paint);
 
     // =========================================================================
     // 2. KINETIC 3D PERSPECTIVE AGRO-SPATIAL TERRAIN GRID & DATA PHOTONS
     // =========================================================================
     final gridLinePaint = Paint()
-      ..color = (isDark ? Colors.white : const Color(0xFF0F172A)).withValues(alpha: isDark ? 0.035 : 0.02)
+      ..color = (isDark ? Colors.white : const Color(0xFF0F172A)).withValues(
+        alpha: isDark ? 0.035 : 0.02,
+      )
       ..strokeWidth = 1.0;
 
     final horizonY = height * 0.52;
@@ -1634,8 +1670,7 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     }
 
     // Kinetic Data Stream Photon Pulses (Traveling along grid tracks toward horizon)
-    final photonPaint = Paint()
-      ..style = PaintingStyle.fill;
+    final photonPaint = Paint()..style = PaintingStyle.fill;
 
     for (int p = 0; p < 5; p++) {
       final pProgress = (rotorProgress * 2.2 + (p * 0.22)) % 1.0;
@@ -1648,8 +1683,10 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
       final curX = startX + (endX - startX) * pProgress;
       final curY = horizonY + (height - horizonY) * math.pow(pProgress, 1.7);
 
-      final alpha = (math.sin(pProgress * math.pi) * (isDark ? 0.50 : 0.25)).clamp(0.0, 1.0);
-      photonPaint.color = (p % 2 == 0 ? primaryColor : secondaryColor).withValues(alpha: alpha);
+      final alpha = (math.sin(pProgress * math.pi) * (isDark ? 0.50 : 0.25))
+          .clamp(0.0, 1.0);
+      photonPaint.color = (p % 2 == 0 ? primaryColor : secondaryColor)
+          .withValues(alpha: alpha);
 
       canvas.drawCircle(Offset(curX, curY), 2.0 + pProgress * 1.2, photonPaint);
     }
@@ -1657,7 +1694,10 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     // =========================================================================
     // 3. MULTI-AXIS 3D GYROSCOPIC HORIZON ORBITALS (Behind Center Card)
     // =========================================================================
-    final gyroCenter = Offset(center.dx + mousePos.dx * 5, center.dy + mousePos.dy * 5);
+    final gyroCenter = Offset(
+      center.dx + mousePos.dx * 5,
+      center.dy + mousePos.dy * 5,
+    );
 
     // Primary Equatorial Horizon Ring
     final gyroAngle1 = rotorProgress * 2 * math.pi;
@@ -1684,15 +1724,22 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
       final tAngle = (i * 2 * math.pi / gyroTicks);
       final isMajor = i % 6 == 0;
       final len = isMajor ? 7.0 : 3.5;
-      final p1 = Offset(math.cos(tAngle) * (ring1Radius - len), math.sin(tAngle) * (ring1Radius - len));
-      final p2 = Offset(math.cos(tAngle) * (ring1Radius + len), math.sin(tAngle) * (ring1Radius + len));
+      final p1 = Offset(
+        math.cos(tAngle) * (ring1Radius - len),
+        math.sin(tAngle) * (ring1Radius - len),
+      );
+      final p2 = Offset(
+        math.cos(tAngle) * (ring1Radius + len),
+        math.sin(tAngle) * (ring1Radius + len),
+      );
       canvas.drawLine(p1, p2, gTickPaint);
     }
 
     // Floating Orbital Satellite Node on Ring 1
     final satX = math.cos(gyroAngle1 * 2.0) * ring1Radius;
     final satY = math.sin(gyroAngle1 * 2.0) * ring1Radius;
-    final satPaint = Paint()..color = primaryColor.withValues(alpha: isDark ? 0.85 : 0.5);
+    final satPaint = Paint()
+      ..color = primaryColor.withValues(alpha: isDark ? 0.85 : 0.5);
     canvas.drawCircle(Offset(satX, satY), 3.5, satPaint);
     satPaint.color = Colors.white.withValues(alpha: 0.95);
     canvas.drawCircle(Offset(satX, satY), 1.6, satPaint);
@@ -1731,11 +1778,15 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     for (int i = 0; i < emberCount; i++) {
       final seed = i * 137.5;
       final eProgress = (waveProgress * 0.8 + (i / emberCount)) % 1.0;
-      final eX = (width * (0.05 + 0.90 * ((math.sin(seed) + 1) / 2))) + mousePos.dx * 3;
+      final eX =
+          (width * (0.05 + 0.90 * ((math.sin(seed) + 1) / 2))) +
+          mousePos.dx * 3;
       final eY = height - (eProgress * height);
-      final eAlpha = (math.sin(eProgress * math.pi) * (isDark ? 0.40 : 0.18)).clamp(0.0, 1.0);
+      final eAlpha = (math.sin(eProgress * math.pi) * (isDark ? 0.40 : 0.18))
+          .clamp(0.0, 1.0);
 
-      emberPaint.color = (i % 2 == 0 ? primaryColor : secondaryColor).withValues(alpha: eAlpha);
+      emberPaint.color = (i % 2 == 0 ? primaryColor : secondaryColor)
+          .withValues(alpha: eAlpha);
       canvas.drawCircle(Offset(eX, eY), 1.2 + (i % 3) * 0.5, emberPaint);
     }
 
@@ -1766,9 +1817,8 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
         final dist = (nodes[i] - nodes[j]).distance;
         if (dist < maxDistance) {
           final alphaFactor = 1.0 - (dist / maxDistance);
-          filamentPaint.color = (i % 2 == 0 ? primaryColor : secondaryColor).withValues(
-            alpha: (isDark ? 0.10 : 0.04) * alphaFactor,
-          );
+          filamentPaint.color = (i % 2 == 0 ? primaryColor : secondaryColor)
+              .withValues(alpha: (isDark ? 0.10 : 0.04) * alphaFactor);
           canvas.drawLine(nodes[i], nodes[j], filamentPaint);
         }
       }
@@ -1792,25 +1842,57 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     // 5. VECTOR ARCHITECTURAL TELEMETRY HUD & AGRO-COORDINATES
     // =========================================================================
     final hudBracketPaint = Paint()
-      ..color = (isDark ? primaryColor : const Color(0xFF475569)).withValues(alpha: isDark ? 0.28 : 0.18)
+      ..color = (isDark ? primaryColor : const Color(0xFF475569)).withValues(
+        alpha: isDark ? 0.28 : 0.18,
+      )
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
 
     // Corner L-Brackets & Crosshairs
-    _drawCornerBracket(canvas, const Offset(36, 36), 14, hudBracketPaint, isTopLeft: true);
-    _drawCornerBracket(canvas, Offset(width - 36, 36), 14, hudBracketPaint, isTopRight: true);
-    _drawCornerBracket(canvas, Offset(36, height - 36), 14, hudBracketPaint, isBottomLeft: true);
-    _drawCornerBracket(canvas, Offset(width - 36, height - 36), 14, hudBracketPaint, isBottomRight: true);
+    _drawCornerBracket(
+      canvas,
+      const Offset(36, 36),
+      14,
+      hudBracketPaint,
+      isTopLeft: true,
+    );
+    _drawCornerBracket(
+      canvas,
+      Offset(width - 36, 36),
+      14,
+      hudBracketPaint,
+      isTopRight: true,
+    );
+    _drawCornerBracket(
+      canvas,
+      Offset(36, height - 36),
+      14,
+      hudBracketPaint,
+      isBottomLeft: true,
+    );
+    _drawCornerBracket(
+      canvas,
+      Offset(width - 36, height - 36),
+      14,
+      hudBracketPaint,
+      isBottomRight: true,
+    );
 
     // Dynamic Telemetry Sonar Rings (Bottom-Left & Top-Right)
     final sonarCenter = Offset(64, height - 64);
     final sonarRadius = 26 + (pulseProgress * 12);
     final sonarPaint = Paint()
-      ..color = primaryColor.withValues(alpha: (isDark ? 0.20 : 0.08) * (1.0 - pulseProgress))
+      ..color = primaryColor.withValues(
+        alpha: (isDark ? 0.20 : 0.08) * (1.0 - pulseProgress),
+      )
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
     canvas.drawCircle(sonarCenter, sonarRadius, sonarPaint);
-    canvas.drawCircle(sonarCenter, 3.0, Paint()..color = primaryColor.withValues(alpha: isDark ? 0.6 : 0.3));
+    canvas.drawCircle(
+      sonarCenter,
+      3.0,
+      Paint()..color = primaryColor.withValues(alpha: isDark ? 0.6 : 0.3),
+    );
   }
 
   void _drawCornerBracket(
@@ -1855,5 +1937,3 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
         oldDelegate.secondaryColor != secondaryColor;
   }
 }
-
-

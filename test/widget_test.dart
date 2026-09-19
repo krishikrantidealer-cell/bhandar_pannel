@@ -57,7 +57,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     // When not logged in, user sees the Login Screen
-    expect(find.text('Authorized Admin Sign In'), findsOneWidget);
+    expect(find.text('Admin Sign In'), findsOneWidget);
     expect(find.text('Sign In to Dashboard'), findsOneWidget);
 
     // Trigger login
