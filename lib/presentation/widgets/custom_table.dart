@@ -84,7 +84,9 @@ class CustomTable extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Header Row
-                Container(
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 450),
+                  curve: Curves.easeInOutCubic,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
@@ -121,7 +123,9 @@ class CustomTable extends StatelessWidget {
                   final cells = entry.value;
                   final isEven = index % 2 == 0;
 
-                  return Container(
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 450),
+                    curve: Curves.easeInOutCubic,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
                       color: isEven

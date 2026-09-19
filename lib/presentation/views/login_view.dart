@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,15 +37,42 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
   Offset _mousePos = Offset.zero;
   Offset _targetMousePos = Offset.zero;
 
+  final GlobalKey _themeButtonKey = GlobalKey();
+  Offset _rippleOrigin = const Offset(1200, 40);
+
   late AnimationController _rotorController;
   late AnimationController _pulseController;
   late AnimationController _shieldController;
   late AnimationController _laserScanController;
   late AnimationController _waveController;
+  late AnimationController _themeController;
+  late Animation<double> _themeAnimation;
+  late AnimationController _rippleController;
+  late Animation<double> _rippleAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    // Theme Blend Controller (700ms smooth cubic interpolation)
+    _themeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _themeAnimation = CurvedAnimation(
+      parent: _themeController,
+      curve: Curves.easeInOutCubic,
+    );
+
+    // Radial Theme Wave Controller (700ms smooth outward ripple)
+    _rippleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _rippleAnimation = CurvedAnimation(
+      parent: _rippleController,
+      curve: Curves.easeInOutCubic,
+    );
 
     // 1. Outer Tachymeter Rotor Rotation (Calm & Elegant)
     _rotorController = AnimationController(
@@ -94,6 +122,33 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
   }
 
+  void _toggleTheme(bool currentIsDark) {
+    final renderBox =
+        _themeButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final size = renderBox.size;
+      final globalPos = renderBox.localToGlobal(
+        Offset(size.width / 2, size.height / 2),
+      );
+      setState(() {
+        _rippleOrigin = globalPos;
+      });
+    }
+    _rippleController.forward(from: 0.0);
+    context.read<ThemeBloc>().add(ToggleDarkMode(currentIsDark));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark && _themeController.value < 1.0) {
+      _themeController.forward();
+    } else if (!isDark && _themeController.value > 0.0) {
+      _themeController.reverse();
+    }
+  }
+
   bool _handleKeyEvent(KeyEvent event) {
     final isCaps = HardwareKeyboard.instance.lockModesEnabled.contains(
       KeyboardLockMode.capsLock,
@@ -116,6 +171,8 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
     _shieldController.dispose();
     _laserScanController.dispose();
     _waveController.dispose();
+    _themeController.dispose();
+    _rippleController.dispose();
     super.dispose();
   }
 
@@ -131,7 +188,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
               Icon(Icons.shield_outlined, color: Colors.white, size: 20),
               SizedBox(width: 12),
               Text(
-                'Please enter both administrator identifier and security key.',
+                'Please enter both your email and password.',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
               ),
             ],
@@ -172,103 +229,122 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
+    if (isDark) {
+      if (_themeController.status != AnimationStatus.forward && _themeController.value < 1.0) {
+        _themeController.forward();
+      }
+    } else {
+      if (_themeController.status != AnimationStatus.reverse && _themeController.value > 0.0) {
+        _themeController.reverse();
+      }
+    }
+
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         final palette = themeState.currentPalette;
 
         return Scaffold(
-          backgroundColor: isDark
-              ? const Color(0xFF050811)
-              : const Color(0xFFF1F5F9),
-          body: MouseRegion(
-            onHover: (event) {
-              if (size.width > 0 && size.height > 0) {
-                setState(() {
-                  _targetMousePos = Offset(
-                    ((event.position.dx / size.width) - 0.5) * 2.0,
-                    ((event.position.dy / size.height) - 0.5) * 2.0,
-                  );
-                  _mousePos = Offset(
-                    _mousePos.dx + (_targetMousePos.dx - _mousePos.dx) * 0.15,
-                    _mousePos.dy + (_targetMousePos.dy - _mousePos.dy) * 0.15,
-                  );
-                });
-              }
-            },
-            child: Stack(
-              children: [
-                // 1. Precision Cyber-Constellation & Gyroscopic Atmosphere
-                Positioned.fill(
-                  child: AnimatedBuilder(
-                    animation: Listenable.merge([
-                      _rotorController,
-                      _pulseController,
-                      _waveController,
-                    ]),
-                    builder: (context, child) {
-                      return CustomPaint(
-                        painter: _ExecutiveAtmospherePainter(
-                          rotorProgress: _rotorController.value,
-                          pulseProgress: _pulseController.value,
-                          waveProgress: _waveController.value,
-                          mousePos: _mousePos,
-                          isDark: isDark,
-                          primaryColor: palette.primary,
-                          secondaryColor: palette.secondary,
+          backgroundColor: Colors.transparent,
+          body: AnimatedContainer(
+            duration: const Duration(milliseconds: 450),
+            curve: Curves.easeInOutCubic,
+            color: isDark
+                ? const Color(0xFF050811)
+                : const Color(0xFFF1F5F9),
+            child: MouseRegion(
+              onHover: (event) {
+                if (size.width > 0 && size.height > 0) {
+                  setState(() {
+                    _targetMousePos = Offset(
+                      ((event.position.dx / size.width) - 0.5) * 2.0,
+                      ((event.position.dy / size.height) - 0.5) * 2.0,
+                    );
+                    _mousePos = Offset(
+                      _mousePos.dx + (_targetMousePos.dx - _mousePos.dx) * 0.15,
+                      _mousePos.dy + (_targetMousePos.dy - _mousePos.dy) * 0.15,
+                    );
+                  });
+                }
+              },
+              child: Stack(
+                children: [
+                  // 1. Precision Cyber-Constellation & Gyroscopic Atmosphere
+                  Positioned.fill(
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([
+                        _rotorController,
+                        _pulseController,
+                        _waveController,
+                        _themeController,
+                        _rippleController,
+                      ]),
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: _ExecutiveAtmospherePainter(
+                            rotorProgress: _rotorController.value,
+                            pulseProgress: _pulseController.value,
+                            waveProgress: _waveController.value,
+                            mousePos: _mousePos,
+                            themeProgress: _themeAnimation.value,
+                            rippleProgress: _rippleAnimation.value,
+                            rippleOrigin: _rippleOrigin,
+                            primaryColor: palette.primary,
+                            secondaryColor: palette.secondary,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // 2. High-Precision Navigation Header
+                  Positioned(
+                    top: 22,
+                    left: 32,
+                    right: 32,
+                    child: _buildHeader(context, isDark, themeState, palette),
+                  ),
+
+                  // 3. Central Monolithic Zero-Trust Command Console
+                  Positioned.fill(
+                    top: 80,
+                    bottom: 44,
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
                         ),
-                      );
-                    },
-                  ),
-                ),
-
-                // 2. High-Precision Navigation Header
-                Positioned(
-                  top: 22,
-                  left: 32,
-                  right: 32,
-                  child: _buildHeader(context, isDark, themeState, palette),
-                ),
-
-                // 3. Central Monolithic Zero-Trust Command Console
-                Positioned.fill(
-                  top: 80,
-                  bottom: 44,
-                  child: Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                      child: _buildIntegratedConsoleCard(
-                        context,
-                        isDark,
-                        themeState,
-                        palette,
+                        child: _buildIntegratedConsoleCard(
+                          context,
+                          isDark,
+                          themeState,
+                          palette,
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                // 4. System Status Bar
-                Positioned(
-                  bottom: 14,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Text(
-                      'KRISHI BHANDAR • ADMIN PANEL',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.0,
-                        color: isDark
-                            ? const Color(0xFF475569)
-                            : const Color(0xFF94A3B8),
+                  // 4. System Status Bar
+                  Positioned(
+                    bottom: 14,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Text(
+                        'KRISHI BHANDAR • ADMIN PANEL',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.0,
+                          color: isDark
+                              ? const Color(0xFF475569)
+                              : const Color(0xFF94A3B8),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -395,8 +471,11 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
           ],
         ),
 
-        // Theme Switcher
-        Container(
+        // Theme Switcher with Smooth Rotation, Scale Transition, and Ripple Tracking
+        AnimatedContainer(
+          key: _themeButtonKey,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeInOutCubic,
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF0B1120) : Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -413,14 +492,26 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
             ],
           ),
           child: IconButton(
-            icon: Icon(
-              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-              size: 18,
-              color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF334155),
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 450),
+              transitionBuilder: (child, animation) {
+                return RotationTransition(
+                  turns: animation,
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: animation, child: child),
+                  ),
+                );
+              },
+              child: Icon(
+                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                key: ValueKey<bool>(isDark),
+                size: 18,
+                color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF334155),
+              ),
             ),
             tooltip: isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme',
-            onPressed: () =>
-                context.read<ThemeBloc>().add(ToggleDarkMode(isDark)),
+            onPressed: () => _toggleTheme(isDark),
           ),
         ),
       ],
@@ -440,7 +531,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
         ..rotateX(-_mousePos.dy * 0.015)
         ..rotateY(_mousePos.dx * 0.015),
       alignment: FractionalOffset.center,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOutCubic,
         width: 500,
         decoration: BoxDecoration(
           color: isDark
@@ -473,7 +566,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // 1. Sleek Compact Optical Sentinel Crest & Header
-              Container(
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.easeInOutCubic,
                 padding: const EdgeInsets.fromLTRB(28, 20, 28, 16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -496,6 +591,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                   children: [
                     // Security Telemetry Status Row
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -592,6 +688,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                           _shieldController,
                           _laserScanController,
                           _waveController,
+                          _themeController,
                         ]),
                         builder: (context, child) {
                           return CustomPaint(
@@ -609,7 +706,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                   : _identifierController.text.length,
                               primaryColor: palette.primary,
                               secondaryColor: palette.secondary,
-                              isDark: isDark,
+                              themeProgress: _themeAnimation.value,
                             ),
                           );
                         },
@@ -618,7 +715,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
 
                     const SizedBox(height: 14),
                     Text(
-                      'Admin Sign In',
+                      'Krishi Bhandar Portal',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 22,
@@ -631,7 +728,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Please enter your email and password to log in',
+                      'Please enter your email and password to access your dashboard',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
@@ -1228,7 +1325,7 @@ class _BiometricSentinelPainter extends CustomPainter {
   final int typingLength;
   final Color primaryColor;
   final Color secondaryColor;
-  final bool isDark;
+  final double themeProgress;
 
   _BiometricSentinelPainter({
     required this.rotorProgress,
@@ -1242,7 +1339,7 @@ class _BiometricSentinelPainter extends CustomPainter {
     required this.typingLength,
     required this.primaryColor,
     required this.secondaryColor,
-    required this.isDark,
+    required this.themeProgress,
   });
 
   @override
@@ -1252,11 +1349,13 @@ class _BiometricSentinelPainter extends CustomPainter {
 
     // 1. Soft Ambient Halo Glow
     final haloRadius = outerRadius + 4 + (pulseProgress * 4);
+    final haloAlpha1 = ui.lerpDouble(0.12, 0.22, themeProgress)!;
+    final haloAlpha2 = ui.lerpDouble(0.03, 0.08, themeProgress)!;
     final haloPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          primaryColor.withValues(alpha: isDark ? 0.22 : 0.12),
-          secondaryColor.withValues(alpha: isDark ? 0.08 : 0.03),
+          primaryColor.withValues(alpha: haloAlpha1),
+          secondaryColor.withValues(alpha: haloAlpha2),
           Colors.transparent,
         ],
         stops: const [0.0, 0.65, 1.0],
@@ -1264,12 +1363,13 @@ class _BiometricSentinelPainter extends CustomPainter {
     canvas.drawCircle(center, haloRadius, haloPaint);
 
     // 2. Clean, Minimalist Orbit Ring with Single Luminous Satellite
+    final orbitAlpha = ui.lerpDouble(0.40, 0.60, themeProgress)!;
     final orbitPaint = Paint()
       ..shader = SweepGradient(
         colors: [
           primaryColor.withValues(alpha: 0.1),
-          primaryColor.withValues(alpha: isDark ? 0.6 : 0.4),
-          secondaryColor.withValues(alpha: isDark ? 0.6 : 0.4),
+          primaryColor.withValues(alpha: orbitAlpha),
+          secondaryColor.withValues(alpha: orbitAlpha),
           primaryColor.withValues(alpha: 0.1),
         ],
         transform: GradientRotation(rotorProgress * 2 * math.pi),
@@ -1293,11 +1393,13 @@ class _BiometricSentinelPainter extends CustomPainter {
 
     // 3. Eye Sclera Bed (Expansive, Balanced Proportions with Wide Eye Travel)
     final eyeRadius = outerRadius * 0.64;
+    final scleraColor1 = Color.lerp(const Color(0xFFFFFFFF), const Color(0xFF1E293B), themeProgress)!;
+    final scleraColor2 = Color.lerp(const Color(0xFFE2E8F0), const Color(0xFF0F172A), themeProgress)!;
+    final scleraBorderColor = Color.lerp(const Color(0xFFCBD5E1), const Color(0xFF334155), themeProgress)!;
+
     final scleraPaint = Paint()
       ..shader = RadialGradient(
-        colors: isDark
-            ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-            : [const Color(0xFFFFFFFF), const Color(0xFFE2E8F0)],
+        colors: [scleraColor1, scleraColor2],
         stops: const [0.6, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: eyeRadius));
 
@@ -1306,8 +1408,7 @@ class _BiometricSentinelPainter extends CustomPainter {
 
     // Subtle Eye Inner Border
     final eyeBorderPaint = Paint()
-      ..color = (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))
-          .withValues(alpha: 0.5)
+      ..color = scleraBorderColor.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
     canvas.drawCircle(center, eyeRadius, eyeBorderPaint);
@@ -1408,11 +1509,12 @@ class _BiometricSentinelPainter extends CustomPainter {
         )
         ..close();
 
+      final lidColor1 = Color.lerp(const Color(0xFFF8FAFC), const Color(0xFF1E293B), themeProgress)!;
+      final lidColor2 = Color.lerp(const Color(0xFFE2E8F0), const Color(0xFF0F172A), themeProgress)!;
+
       final lidPaint = Paint()
         ..shader = LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-              : [const Color(0xFFF8FAFC), const Color(0xFFE2E8F0)],
+          colors: [lidColor1, lidColor2],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ).createShader(Rect.fromCircle(center: center, radius: eyeRadius));
@@ -1541,7 +1643,7 @@ class _BiometricSentinelPainter extends CustomPainter {
         oldDelegate.typingLength != typingLength ||
         oldDelegate.primaryColor != primaryColor ||
         oldDelegate.secondaryColor != secondaryColor ||
-        oldDelegate.isDark != isDark;
+        oldDelegate.themeProgress != themeProgress;
   }
 }
 
@@ -1556,7 +1658,9 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
   final double pulseProgress;
   final double waveProgress;
   final Offset mousePos;
-  final bool isDark;
+  final double themeProgress;
+  final double rippleProgress;
+  final Offset rippleOrigin;
   final Color primaryColor;
   final Color secondaryColor;
 
@@ -1565,7 +1669,9 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     required this.pulseProgress,
     required this.waveProgress,
     required this.mousePos,
-    required this.isDark,
+    required this.themeProgress,
+    required this.rippleProgress,
+    required this.rippleOrigin,
     required this.primaryColor,
     required this.secondaryColor,
   });
@@ -1579,20 +1685,102 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     final center = Offset(width * 0.5, height * 0.5);
 
     // =========================================================================
+    // 0. RADIAL THEME ENERGY EXPANSION (Originating directly from Theme Icon)
+    // =========================================================================
+    if (rippleProgress > 0.0 && rippleProgress < 1.0) {
+      final origin = (rippleOrigin.dx == 0 && rippleOrigin.dy == 0)
+          ? Offset(width - 50, 40)
+          : rippleOrigin;
+      final corners = [
+        Offset.zero,
+        Offset(width, 0),
+        Offset(0, height),
+        Offset(width, height),
+      ];
+      double maxRadius = 0.0;
+      for (final corner in corners) {
+        final d = (corner - origin).distance;
+        if (d > maxRadius) maxRadius = d;
+      }
+      maxRadius = math.max(maxRadius, 100.0) * 1.08;
+
+      final r = maxRadius * rippleProgress;
+      final fadeAlpha = (1.0 - rippleProgress).clamp(0.0, 1.0);
+
+      // Expanding Theme Wash Radiance
+      final washColor = Color.lerp(
+        const Color(0xFFF1F5F9),
+        const Color(0xFF050811),
+        themeProgress,
+      )!;
+      final washPaint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            washColor.withValues(alpha: 0.85 * fadeAlpha),
+            washColor.withValues(alpha: 0.40 * fadeAlpha),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.88, 1.0],
+        ).createShader(Rect.fromCircle(center: origin, radius: r));
+      canvas.drawCircle(origin, r, washPaint);
+
+      // Luminous Wavefront Shockwave Energy Ring
+      final ringThickness = 60.0 * (1.0 - rippleProgress * 0.5);
+      final ringPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = ringThickness
+        ..shader = RadialGradient(
+          colors: [
+            Colors.transparent,
+            primaryColor.withValues(alpha: 0.45 * fadeAlpha),
+            secondaryColor.withValues(alpha: 0.60 * fadeAlpha),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.45, 0.75, 1.0],
+        ).createShader(Rect.fromCircle(center: origin, radius: r + ringThickness * 0.5));
+      canvas.drawCircle(origin, r, ringPaint);
+
+      // Specular Wavefront Rim
+      final rimPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..color = (themeProgress > 0.5 ? primaryColor : const Color(0xFFFBBF24))
+            .withValues(alpha: 0.85 * fadeAlpha);
+      canvas.drawCircle(origin, r, rimPaint);
+
+      // Radial Energy Spark Flare Particles
+      const int flareCount = 14;
+      final sparkPaint = Paint()..style = PaintingStyle.fill;
+      for (int i = 0; i < flareCount; i++) {
+        final angle = (i * 2 * math.pi / flareCount) + (rippleProgress * 0.6);
+        final sparkDist = r + math.sin(i * 1.7) * 8.0;
+        final sparkX = origin.dx + math.cos(angle) * sparkDist;
+        final sparkY = origin.dy + math.sin(angle) * sparkDist;
+        if (sparkX >= -20 && sparkX <= width + 20 && sparkY >= -20 && sparkY <= height + 20) {
+          sparkPaint.color = (i % 2 == 0 ? primaryColor : Colors.white)
+              .withValues(alpha: (0.80 * fadeAlpha).clamp(0.0, 1.0));
+          canvas.drawCircle(Offset(sparkX, sparkY), 2.2 + (i % 3) * 0.8, sparkPaint);
+        }
+      }
+    }
+
+    // =========================================================================
     // 1. MULTI-POINT VOLUMETRIC AURORA NEBULAE (Deep Field Chromatic Luminescence)
-    // ===============================    // Point A: Bio-Emerald Core (Top-Left Drifting Fluid)
+    // =========================================================================
     final aAngle = waveProgress * 2 * math.pi;
     final aurora1Center = Offset(
       width * 0.22 + math.cos(aAngle) * 40 + mousePos.dx * 6,
       height * 0.28 + math.sin(aAngle * 0.8) * 35 + mousePos.dy * 6,
     );
     final aurora1Radius = width * (0.42 + 0.05 * pulseProgress);
+    final a1Alpha1 = ui.lerpDouble(0.07, 0.20, themeProgress)!;
+    final a1Alpha2 = ui.lerpDouble(0.02, 0.08, themeProgress)!;
     final aurora1Paint = Paint()
       ..shader =
           RadialGradient(
             colors: [
-              primaryColor.withValues(alpha: isDark ? 0.20 : 0.07),
-              primaryColor.withValues(alpha: isDark ? 0.08 : 0.02),
+              primaryColor.withValues(alpha: a1Alpha1),
+              primaryColor.withValues(alpha: a1Alpha2),
               Colors.transparent,
             ],
             stops: const [0.0, 0.55, 1.0],
@@ -1608,12 +1796,14 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
       height * 0.72 + math.sin(bAngle) * 30 - mousePos.dy * 6,
     );
     final aurora2Radius = width * (0.38 + 0.04 * (1.0 - pulseProgress));
+    final a2Alpha1 = ui.lerpDouble(0.05, 0.16, themeProgress)!;
+    final a2Alpha2 = ui.lerpDouble(0.015, 0.06, themeProgress)!;
     final aurora2Paint = Paint()
       ..shader =
           RadialGradient(
             colors: [
-              secondaryColor.withValues(alpha: isDark ? 0.16 : 0.05),
-              secondaryColor.withValues(alpha: isDark ? 0.06 : 0.015),
+              secondaryColor.withValues(alpha: a2Alpha1),
+              secondaryColor.withValues(alpha: a2Alpha2),
               Colors.transparent,
             ],
             stops: const [0.0, 0.55, 1.0],
@@ -1623,6 +1813,7 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     canvas.drawCircle(aurora2Center, aurora2Radius, aurora2Paint);
 
     // Point C: Solar Warmth / Electric Indigo Accent (Center-Top Breathing Ray)
+    final a3Alpha = ui.lerpDouble(0.03, 0.09, themeProgress)!;
     final aurora3Center = Offset(
       width * 0.50 + mousePos.dx * 4,
       height * 0.15 + math.sin(aAngle * 1.2) * 20,
@@ -1631,7 +1822,7 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
       ..shader =
           RadialGradient(
             colors: [
-              const Color(0xFF6366F1).withValues(alpha: isDark ? 0.09 : 0.03),
+              const Color(0xFF6366F1).withValues(alpha: a3Alpha),
               Colors.transparent,
             ],
             stops: const [0.0, 1.0],
@@ -1643,10 +1834,10 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     // =========================================================================
     // 2. KINETIC 3D PERSPECTIVE AGRO-SPATIAL TERRAIN GRID & DATA PHOTONS
     // =========================================================================
+    final gridLineColor = Color.lerp(const Color(0xFF0F172A), Colors.white, themeProgress)!;
+    final gridAlpha = ui.lerpDouble(0.02, 0.035, themeProgress)!;
     final gridLinePaint = Paint()
-      ..color = (isDark ? Colors.white : const Color(0xFF0F172A)).withValues(
-        alpha: isDark ? 0.035 : 0.02,
-      )
+      ..color = gridLineColor.withValues(alpha: gridAlpha)
       ..strokeWidth = 1.0;
 
     final horizonY = height * 0.52;
@@ -1687,7 +1878,8 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
       final curX = startX + (endX - startX) * pProgress;
       final curY = horizonY + (height - horizonY) * math.pow(pProgress, 1.7);
 
-      final alpha = (math.sin(pProgress * math.pi) * (isDark ? 0.50 : 0.25))
+      final pBaseAlpha = ui.lerpDouble(0.25, 0.50, themeProgress)!;
+      final alpha = (math.sin(pProgress * math.pi) * pBaseAlpha)
           .clamp(0.0, 1.0);
       photonPaint.color = (p % 2 == 0 ? primaryColor : secondaryColor)
           .withValues(alpha: alpha);
@@ -1706,10 +1898,21 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     // Primary Equatorial Horizon Ring
     final gyroAngle1 = rotorProgress * 2 * math.pi;
     final ring1Radius = width * 0.34;
+    final ring1Alpha = ui.lerpDouble(0.12, 0.35, themeProgress)!;
     final ring1Paint = Paint()
-      ..color = primaryColor.withValues(alpha: isDark ? 0.12 : 0.05)
+      ..shader =
+          SweepGradient(
+            colors: [
+              Colors.transparent,
+              primaryColor.withValues(alpha: ring1Alpha),
+              Colors.transparent,
+            ],
+            transform: GradientRotation(gyroAngle1),
+          ).createShader(
+            Rect.fromCircle(center: gyroCenter, radius: ring1Radius),
+          )
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.3;
+      ..strokeWidth = 1.6;
 
     canvas.save();
     canvas.translate(gyroCenter.dx, gyroCenter.dy);
@@ -1719,8 +1922,9 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
 
     // Orbital Tachymeter Ticks & Satellite Node
     const int gyroTicks = 24;
+    final gTickAlpha = ui.lerpDouble(0.15, 0.35, themeProgress)!;
     final gTickPaint = Paint()
-      ..color = primaryColor.withValues(alpha: isDark ? 0.35 : 0.15)
+      ..color = primaryColor.withValues(alpha: gTickAlpha)
       ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round;
 
@@ -1742,8 +1946,9 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     // Floating Orbital Satellite Node on Ring 1
     final satX = math.cos(gyroAngle1 * 2.0) * ring1Radius;
     final satY = math.sin(gyroAngle1 * 2.0) * ring1Radius;
+    final satAlpha = ui.lerpDouble(0.50, 0.85, themeProgress)!;
     final satPaint = Paint()
-      ..color = primaryColor.withValues(alpha: isDark ? 0.85 : 0.5);
+      ..color = primaryColor.withValues(alpha: satAlpha);
     canvas.drawCircle(Offset(satX, satY), 3.5, satPaint);
     satPaint.color = Colors.white.withValues(alpha: 0.95);
     canvas.drawCircle(Offset(satX, satY), 1.6, satPaint);
@@ -1753,15 +1958,19 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     // Counter-Rotating Inner Elliptical Orbital
     final gyroAngle2 = -rotorProgress * 2 * math.pi * 0.75;
     final ring2Radius = width * 0.25;
+    final ring2Alpha = ui.lerpDouble(0.08, 0.22, themeProgress)!;
     final ring2Paint = Paint()
-      ..shader = SweepGradient(
-        colors: [
-          Colors.transparent,
-          secondaryColor.withValues(alpha: isDark ? 0.22 : 0.08),
-          Colors.transparent,
-        ],
-        transform: GradientRotation(gyroAngle2),
-      ).createShader(Rect.fromCircle(center: gyroCenter, radius: ring2Radius))
+      ..shader =
+          SweepGradient(
+            colors: [
+              Colors.transparent,
+              secondaryColor.withValues(alpha: ring2Alpha),
+              Colors.transparent,
+            ],
+            transform: GradientRotation(gyroAngle2),
+          ).createShader(
+            Rect.fromCircle(center: gyroCenter, radius: ring2Radius),
+          )
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6;
 
@@ -1786,7 +1995,8 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
           (width * (0.05 + 0.90 * ((math.sin(seed) + 1) / 2))) +
           mousePos.dx * 3;
       final eY = height - (eProgress * height);
-      final eAlpha = (math.sin(eProgress * math.pi) * (isDark ? 0.40 : 0.18))
+      final eMaxAlpha = ui.lerpDouble(0.18, 0.40, themeProgress)!;
+      final eAlpha = (math.sin(eProgress * math.pi) * eMaxAlpha)
           .clamp(0.0, 1.0);
 
       emberPaint.color = (i % 2 == 0 ? primaryColor : secondaryColor)
@@ -1821,8 +2031,9 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
         final dist = (nodes[i] - nodes[j]).distance;
         if (dist < maxDistance) {
           final alphaFactor = 1.0 - (dist / maxDistance);
+          final fMaxAlpha = ui.lerpDouble(0.04, 0.10, themeProgress)!;
           filamentPaint.color = (i % 2 == 0 ? primaryColor : secondaryColor)
-              .withValues(alpha: (isDark ? 0.10 : 0.04) * alphaFactor);
+              .withValues(alpha: fMaxAlpha * alphaFactor);
           canvas.drawLine(nodes[i], nodes[j], filamentPaint);
         }
       }
@@ -1830,25 +2041,27 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
 
     // Glowing Node Mote Hubs
     final motePaint = Paint()..style = PaintingStyle.fill;
+    final mMaxAlpha1 = ui.lerpDouble(0.25, 0.50, themeProgress)!;
+    final mMaxAlpha2 = ui.lerpDouble(0.50, 0.80, themeProgress)!;
     for (int i = 0; i < nodes.length; i++) {
       final isSecondary = i % 3 == 0;
       final pColor = isSecondary ? secondaryColor : primaryColor;
 
-      motePaint.color = pColor.withValues(alpha: isDark ? 0.50 : 0.25);
+      motePaint.color = pColor.withValues(alpha: mMaxAlpha1);
       final radius = 2.4 + (i % 3) * 0.8;
       canvas.drawCircle(nodes[i], radius, motePaint);
 
-      motePaint.color = Colors.white.withValues(alpha: isDark ? 0.80 : 0.50);
+      motePaint.color = Colors.white.withValues(alpha: mMaxAlpha2);
       canvas.drawCircle(nodes[i], radius * 0.45, motePaint);
     }
 
     // =========================================================================
     // 5. VECTOR ARCHITECTURAL TELEMETRY HUD & AGRO-COORDINATES
     // =========================================================================
+    final hudColor = Color.lerp(const Color(0xFF475569), primaryColor, themeProgress)!;
+    final hudAlpha = ui.lerpDouble(0.18, 0.28, themeProgress)!;
     final hudBracketPaint = Paint()
-      ..color = (isDark ? primaryColor : const Color(0xFF475569)).withValues(
-        alpha: isDark ? 0.28 : 0.18,
-      )
+      ..color = hudColor.withValues(alpha: hudAlpha)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
 
@@ -1885,17 +2098,19 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
     // Dynamic Telemetry Sonar Rings (Bottom-Left & Top-Right)
     final sonarCenter = Offset(64, height - 64);
     final sonarRadius = 26 + (pulseProgress * 12);
+    final sonarAlpha = ui.lerpDouble(0.08, 0.20, themeProgress)!;
     final sonarPaint = Paint()
       ..color = primaryColor.withValues(
-        alpha: (isDark ? 0.20 : 0.08) * (1.0 - pulseProgress),
+        alpha: sonarAlpha * (1.0 - pulseProgress),
       )
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
     canvas.drawCircle(sonarCenter, sonarRadius, sonarPaint);
+    final dotAlpha = ui.lerpDouble(0.30, 0.60, themeProgress)!;
     canvas.drawCircle(
       sonarCenter,
       3.0,
-      Paint()..color = primaryColor.withValues(alpha: isDark ? 0.6 : 0.3),
+      Paint()..color = primaryColor.withValues(alpha: dotAlpha),
     );
   }
 
@@ -1936,7 +2151,9 @@ class _ExecutiveAtmospherePainter extends CustomPainter {
         oldDelegate.pulseProgress != pulseProgress ||
         oldDelegate.waveProgress != waveProgress ||
         oldDelegate.mousePos != mousePos ||
-        oldDelegate.isDark != isDark ||
+        oldDelegate.themeProgress != themeProgress ||
+        oldDelegate.rippleProgress != rippleProgress ||
+        oldDelegate.rippleOrigin != rippleOrigin ||
         oldDelegate.primaryColor != primaryColor ||
         oldDelegate.secondaryColor != secondaryColor;
   }

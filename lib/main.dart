@@ -58,25 +58,39 @@ class BhandarAdminApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
+        final lightTheme = AppTheme.createTheme(
+          palette: themeState.currentPalette,
+          isDark: false,
+          fontFamily: themeState.fontFamily,
+          borderRadius: themeState.borderRadius,
+          density: themeState.density,
+        );
+        final darkTheme = AppTheme.createTheme(
+          palette: themeState.currentPalette,
+          isDark: true,
+          fontFamily: themeState.fontFamily,
+          borderRadius: themeState.borderRadius,
+          density: themeState.density,
+        );
+
         return MaterialApp.router(
           title: themeState.brandName,
           debugShowCheckedModeBanner: false,
           routerConfig: router,
           themeMode: themeState.themeMode,
-          theme: AppTheme.createTheme(
-            palette: themeState.currentPalette,
-            isDark: false,
-            fontFamily: themeState.fontFamily,
-            borderRadius: themeState.borderRadius,
-            density: themeState.density,
-          ),
-          darkTheme: AppTheme.createTheme(
-            palette: themeState.currentPalette,
-            isDark: true,
-            fontFamily: themeState.fontFamily,
-            borderRadius: themeState.borderRadius,
-            density: themeState.density,
-          ),
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          builder: (context, child) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final currentTheme = isDark ? darkTheme : lightTheme;
+
+            return AnimatedTheme(
+              data: currentTheme,
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeInOutCubic,
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
         );
       },
     );

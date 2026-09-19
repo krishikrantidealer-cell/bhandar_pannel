@@ -27,7 +27,8 @@ class Sidebar extends StatelessWidget {
         final isCollapsed = themeState.isSidebarCollapsed;
 
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeInOutCubic,
           width: isCollapsed ? 80 : 260,
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E293B) : Colors.white,

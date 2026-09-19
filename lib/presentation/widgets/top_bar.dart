@@ -84,7 +84,9 @@ class TopBar extends StatelessWidget {
             final displayName = user?.name ?? 'Admin';
             final userRole = user?.userType.name.toUpperCase() ?? 'ADMIN';
 
-            return Container(
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeInOutCubic,
               height: 70,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
@@ -192,11 +194,25 @@ class TopBar extends StatelessWidget {
                     },
                   ),
 
-                  // Dark/Light Theme Quick Toggler
+                  // Dark/Light Theme Quick Toggler with Smooth Rotation & Scale Transition
                   IconButton(
-                    icon: Icon(
-                      isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                      size: 20,
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 450),
+                      transitionBuilder: (child, animation) {
+                        return RotationTransition(
+                          turns: animation,
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: ScaleTransition(scale: animation, child: child),
+                          ),
+                        );
+                      },
+                      child: Icon(
+                        isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                        key: ValueKey<bool>(isDark),
+                        size: 20,
+                        color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF334155),
+                      ),
                     ),
                     tooltip: isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme',
                     onPressed: () => context.read<ThemeBloc>().add(ToggleDarkMode(isDark)),
