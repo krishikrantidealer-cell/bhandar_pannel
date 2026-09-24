@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +9,7 @@ import '../../logic/theme/theme_state.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
+import '../widgets/theme_ripple_painter.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -41,11 +41,11 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
 
     _rippleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 650),
+      duration: const Duration(milliseconds: 450),
     );
     _rippleAnimation = CurvedAnimation(
       parent: _rippleController,
-      curve: Curves.easeInOutCubic,
+      curve: Curves.easeOutCubic,
     );
   }
 
@@ -642,18 +642,18 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
               AnimatedBuilder(
                 animation: _rippleAnimation,
                 builder: (context, child) {
-                  if (_rippleAnimation.value == 0.0 || _rippleAnimation.value == 1.0) {
+                  if (_rippleAnimation.value <= 0.0 || _rippleAnimation.value >= 1.0) {
                     return const SizedBox.shrink();
                   }
                   return Positioned.fill(
                     child: IgnorePointer(
                       child: CustomPaint(
                         size: size,
-                        painter: _ThemeRipplePainter(
+                        painter: ThemeRipplePainter(
                           progress: _rippleAnimation.value,
                           origin: _rippleOrigin,
-                          targetColor: isDark ? const Color(0xFF0A0F1D) : const Color(0xFFF8FAFC),
-                          waveColor: isDark ? const Color(0xFF10B981) : const Color(0xFF059669),
+                          targetColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                          waveColor: themeState.currentPalette.primary,
                         ),
                       ),
                     ),
@@ -727,58 +727,5 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
         ),
       ],
     );
-  }
-}
-
-class _ThemeRipplePainter extends CustomPainter {
-  final double progress;
-  final Offset origin;
-  final Color targetColor;
-  final Color waveColor;
-
-  _ThemeRipplePainter({
-    required this.progress,
-    required this.origin,
-    required this.targetColor,
-    required this.waveColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (progress <= 0.0 || progress >= 1.0) return;
-
-    final double maxRadius = math.sqrt(
-      math.pow(math.max(origin.dx, size.width - origin.dx), 2) +
-      math.pow(math.max(origin.dy, size.height - origin.dy), 2),
-    );
-
-    final currentRadius = maxRadius * progress;
-
-    // Expanding solid wave wash
-    final fillPaint = Paint()
-      ..color = targetColor.withValues(alpha: (1.0 - progress * 0.7).clamp(0.0, 1.0))
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(origin, currentRadius, fillPaint);
-
-    // Primary wavefront ring
-    final primaryWavePaint = Paint()
-      ..color = waveColor.withValues(alpha: ((1.0 - progress) * 0.9).clamp(0.0, 1.0))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = (5.0 * (1.0 - progress) + 1.0);
-    canvas.drawCircle(origin, currentRadius, primaryWavePaint);
-
-    // Trailing echo wave ring
-    if (currentRadius > 40) {
-      final echoWavePaint = Paint()
-        ..color = waveColor.withValues(alpha: ((1.0 - progress) * 0.4).clamp(0.0, 1.0))
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0;
-      canvas.drawCircle(origin, (currentRadius - 30).clamp(0.0, double.infinity), echoWavePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _ThemeRipplePainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.origin != origin;
   }
 }

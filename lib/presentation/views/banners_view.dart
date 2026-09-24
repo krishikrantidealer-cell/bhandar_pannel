@@ -8,6 +8,7 @@ import '../../logic/theme/theme_state.dart';
 import '../../models/banner_model.dart';
 import '../widgets/image_preview.dart';
 import '../widgets/status_badge.dart';
+import '../widgets/shimmer_loading.dart';
 
 class BannersView extends StatelessWidget {
   final bool isEmbedded;
@@ -236,21 +237,56 @@ class BannersView extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Banners List
-                  banners.isEmpty
-                      ? Container(
-                          padding: const EdgeInsets.all(40),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'No banners found. Click "Add Banner" to create your first promotion.',
-                            style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  if (bannerState.isLoading)
+                    Shimmer(
+                      child: Column(
+                        children: List.generate(
+                          4,
+                          (index) => Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SkeletonBox(width: 140, height: 75, borderRadius: 8),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: const [
+                                        SkeletonBox(width: 180, height: 16, borderRadius: 4),
+                                        SizedBox(height: 8),
+                                        SkeletonBox(width: 260, height: 12, borderRadius: 3),
+                                        SizedBox(height: 12),
+                                        SkeletonBadge(width: 80, height: 20),
+                                      ],
+                                    ),
+                                  ),
+                                  const SkeletonBox(width: 50, height: 24, borderRadius: 4),
+                                ],
+                              ),
+                            ),
                           ),
-                        )
-                      : ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: banners.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
+                        ),
+                      ),
+                    )
+                  else if (banners.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(40),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'No banners found. Click "Add Banner" to create your first promotion.',
+                        style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: banners.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
                             final banner = banners[index];
                             return Card(
                               child: Padding(

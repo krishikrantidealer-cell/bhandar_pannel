@@ -7,6 +7,7 @@ import '../../logic/theme/theme_bloc.dart';
 import '../../logic/theme/theme_state.dart';
 import '../../models/category_model.dart';
 import '../widgets/image_preview.dart';
+import '../widgets/shimmer_loading.dart';
 
 class CategoriesView extends StatefulWidget {
   final bool isEmbedded;
@@ -226,6 +227,20 @@ class _CategoriesViewState extends State<CategoriesView> {
                       }
 
                       final itemWidth = (width - ((crossAxisCount - 1) * 20)) / crossAxisCount;
+
+                      if (categoryState.isLoading) {
+                        return Wrap(
+                          spacing: 20,
+                          runSpacing: 20,
+                          children: List.generate(
+                            6,
+                            (index) => SizedBox(
+                              width: itemWidth,
+                              child: CategoryCardSkeleton(borderRadius: themeState.borderRadius),
+                            ),
+                          ),
+                        );
+                      }
 
                       return Wrap(
                         spacing: 20,

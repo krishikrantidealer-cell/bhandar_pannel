@@ -14,6 +14,8 @@ class CollectionState extends Equatable {
     this.errorMessage,
   });
 
+  bool get isLoading => status == CollectionStatus.loading;
+
   CollectionState copyWith({
     CollectionStatus? status,
     List<CollectionModel>? collections,

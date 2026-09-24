@@ -199,6 +199,7 @@ class OrdersView extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: CustomTable(
                     minWidth: 900,
+                    isLoading: orderState.isLoading,
                     columns: const [
                       TableColumnDef(label: 'Order ID', flex: 2),
                       TableColumnDef(label: 'Customer', flex: 3),
@@ -285,10 +286,9 @@ class OrdersView extends StatelessWidget {
                         badge,
 
                         // Action
-                        IconButton(
-                          icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
+                        TableActionButton.view(
                           tooltip: 'View Details',
-                          onPressed: () => _showOrderDetailsModal(context, order),
+                          onTap: () => _showOrderDetailsModal(context, order),
                         ),
                       ];
                     }).toList(),

@@ -14,6 +14,8 @@ class BannerState extends Equatable {
     this.errorMessage,
   });
 
+  bool get isLoading => status == BannerStateStatus.loading;
+
   BannerState copyWith({
     BannerStateStatus? status,
     List<BannerModel>? banners,

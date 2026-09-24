@@ -28,6 +28,14 @@ class FilterProductsByCategory extends ProductEvent {
   List<Object?> get props => [category];
 }
 
+class FilterProductsBySubCategory extends ProductEvent {
+  final String? subCategory;
+  const FilterProductsBySubCategory(this.subCategory);
+
+  @override
+  List<Object?> get props => [subCategory];
+}
+
 class AddProductEvent extends ProductEvent {
   final ProductModel product;
   const AddProductEvent(this.product);

@@ -51,6 +51,11 @@ class BhandarRepository {
   Future<void> deleteBanner(String id) => apiService.deleteBanner(id);
 
   Future<List<CouponModel>> getCoupons() => apiService.getCoupons();
+  Future<CouponModel> addCoupon(Map<String, dynamic> data) => apiService.createCoupon(data);
+  Future<CouponModel> updateCoupon(String id, Map<String, dynamic> data) => apiService.updateCoupon(id, data);
+  Future<void> deleteCoupon(String id) => apiService.deleteCoupon(id);
+
   Future<List<OrderModel>> getOrders() => apiService.getOrders();
+  Future<OrderModel> updateOrderStatus(String id, String status) => apiService.updateOrderStatus(id, status);
   Future<DashboardStats> getDashboardStats() => apiService.getDashboardStats();
 }

@@ -1,3 +1,5 @@
+import 'category_model.dart';
+
 class ProductVariant {
   final String id;
   final String title;
@@ -20,12 +22,36 @@ class ProductVariant {
   double get discountPercent => mrp > price && mrp > 0 ? ((mrp - price) / mrp) * 100 : 0.0;
 
   factory ProductVariant.fromJson(Map<String, dynamic> json) {
+    int parsedStock = 0;
+    final rawStock = json['inventoryQuantity'] ?? json['inventory_quantity'] ?? json['stock'];
+    if (rawStock is num) {
+      parsedStock = rawStock.toInt();
+    } else if (rawStock != null) {
+      parsedStock = int.tryParse(rawStock.toString()) ?? 0;
+    }
+
+    double parsedPrice = 0.0;
+    final rawPrice = json['price'];
+    if (rawPrice is num) {
+      parsedPrice = rawPrice.toDouble();
+    } else if (rawPrice != null) {
+      parsedPrice = double.tryParse(rawPrice.toString()) ?? 0.0;
+    }
+
+    double parsedMrp = parsedPrice;
+    final rawMrp = json['mrp'] ?? json['compareAtPrice'] ?? json['compare_at_price'];
+    if (rawMrp is num) {
+      parsedMrp = rawMrp.toDouble();
+    } else if (rawMrp != null) {
+      parsedMrp = double.tryParse(rawMrp.toString()) ?? parsedPrice;
+    }
+
     return ProductVariant(
-      id: json['_id'] ?? json['id']?.toString() ?? '',
-      title: json['title'] ?? 'Default',
-      price: (json['price'] is num) ? (json['price'] as num).toDouble() : double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      mrp: (json['mrp'] is num) ? (json['mrp'] as num).toDouble() : (json['compareAtPrice'] is num ? (json['compareAtPrice'] as num).toDouble() : double.tryParse(json['mrp']?.toString() ?? '0') ?? 0.0),
-      inventoryQuantity: json['inventoryQuantity'] ?? json['inventory_quantity'] ?? json['stock'] ?? 0,
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
+      title: (json['title'] ?? json['option'] ?? 'Default').toString(),
+      price: parsedPrice,
+      mrp: parsedMrp >= parsedPrice ? parsedMrp : parsedPrice,
+      inventoryQuantity: parsedStock,
       sku: json['sku']?.toString(),
       weight: json['weight']?.toString(),
     );
@@ -47,8 +73,15 @@ class ProductModel {
   final String title;
   final String? description;
   final String category;
+  final String? categoryId;
+  final List<String> categoryIds;
   final String? subCategory;
+  final String? productType;
+  final List<String> tags;
+  final List<String> assignedCollections;
   final String brand;
+  final String status;
+  final bool buy1get1;
   final List<String> images;
   final List<ProductVariant> variants;
   final double price;
@@ -67,8 +100,15 @@ class ProductModel {
     required this.title,
     this.description,
     required this.category,
+    this.categoryId,
+    this.categoryIds = const [],
     this.subCategory,
+    this.productType,
+    this.tags = const [],
+    this.assignedCollections = const [],
     this.brand = 'Krishi Bhandar',
+    this.status = 'active',
+    this.buy1get1 = false,
     this.images = const [],
     this.variants = const [],
     required this.price,
@@ -83,8 +123,185 @@ class ProductModel {
     this.updatedAt,
   });
 
+  String get vendor => brand;
+  String? get sku => variants.isNotEmpty && variants.first.sku != null && variants.first.sku!.isNotEmpty
+      ? variants.first.sku
+      : null;
+  String get optionTitle => variants.isNotEmpty ? variants.first.title : 'Default';
   String get mainImage => images.isNotEmpty ? images.first : 'https://placehold.co/400x400/png?text=Bhandar+Product';
   double get discountPercent => mrp > price && mrp > 0 ? ((mrp - price) / mrp) * 100 : 0.0;
+  List<String> get collections => assignedCollections;
+
+  /// Resolves all distinct Category models associated with this product
+  List<CategoryModel> resolveAllCategories(List<CategoryModel> categories) {
+    final allIds = <String>[
+      if (categoryId != null && categoryId!.isNotEmpty) categoryId!,
+      ...categoryIds,
+      if (category.isNotEmpty && RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(category)) category,
+    ];
+
+    final matched = <CategoryModel>[];
+    for (final id in allIds) {
+      final found = categories.where((c) => c.id == id || c.slug == id).firstOrNull;
+      if (found != null && !matched.contains(found)) {
+        matched.add(found);
+      }
+    }
+
+    if (matched.isEmpty && category.isNotEmpty && !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(category)) {
+      final foundByName = categories.where((c) => c.name.toLowerCase() == category.toLowerCase()).firstOrNull;
+      if (foundByName != null) matched.add(foundByName);
+    }
+    return matched;
+  }
+
+  /// Resolves all human-readable category names
+  List<String> resolveAllCategoryNames(List<CategoryModel> categories) {
+    final cats = resolveAllCategories(categories);
+    final names = cats.map((c) => c.name).toList();
+    if (names.isEmpty) {
+      if (category.isNotEmpty && !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(category) && category != 'General') {
+        names.add(category);
+      } else {
+        names.add('General');
+      }
+    }
+    return names;
+  }
+
+  /// Resolves all distinct sub-category names across all category taxonomies
+  List<String> resolveAllSubCategoryNames(List<CategoryModel> categories) {
+    final subNames = <String>{};
+    final allCats = resolveAllCategories(categories);
+    final allIds = <String>[
+      if (categoryId != null && categoryId!.isNotEmpty) categoryId!,
+      ...categoryIds,
+      if (subCategory != null && subCategory!.isNotEmpty) subCategory!,
+    ];
+
+    for (final cat in allCats) {
+      for (final sub in cat.subCategories) {
+        if (allIds.contains(sub.id)) {
+          subNames.add(sub.name);
+        }
+      }
+    }
+
+    // Direct subCategory string
+    if (subCategory != null && subCategory!.isNotEmpty && !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(subCategory!)) {
+      subNames.add(subCategory!);
+    }
+
+    // Single resolver fallback
+    if (subNames.isEmpty) {
+      final single = resolveSubCategoryName(categories);
+      if (single != null && single.isNotEmpty) {
+        subNames.add(single);
+      }
+    }
+
+    return subNames.toList();
+  }
+
+  /// Resolves the primary category model from category & categoryIds
+  CategoryModel? resolvePrimaryCategory(List<CategoryModel> categories) {
+    final matchedCats = resolveAllCategories(categories);
+    if (matchedCats.isEmpty) return null;
+
+    // Prioritize main parent categories (those with subCategories or top parent names)
+    const topParents = [
+      'fungicides',
+      'insecticides',
+      'herbicides',
+      'pgrs',
+      'fertilizers',
+      'bio products',
+      'micronutrients',
+      'antibiotics',
+      'organic fertilizers'
+    ];
+    for (final cat in matchedCats) {
+      if (cat.subCategories.isNotEmpty || topParents.contains(cat.name.toLowerCase())) {
+        return cat;
+      }
+    }
+
+    return matchedCats.first;
+  }
+
+  /// Resolves the actual human-readable Category name (e.g. "Fungicides")
+  String resolveCategoryName(List<CategoryModel> categories) {
+    final primary = resolvePrimaryCategory(categories);
+    if (primary != null) return primary.name;
+    if (category.isNotEmpty && !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(category) && category != 'General') {
+      return category;
+    }
+    return 'General';
+  }
+
+  /// Resolves the Sub-Category name (e.g. "Chemical-Fungicide", "Bio-Fungicide", "Organic-Fungicide")
+  String? resolveSubCategoryName(List<CategoryModel> categories) {
+    final primary = resolvePrimaryCategory(categories);
+    final allIds = <String>[
+      if (categoryId != null && categoryId!.isNotEmpty) categoryId!,
+      ...categoryIds,
+      if (subCategory != null && subCategory!.isNotEmpty) subCategory!,
+    ];
+
+    // 1. If primary category defines subCategories (e.g. Fungicides -> [Chemical-Fungicide, Bio-Fungicide, Organic-Fungicide])
+    if (primary != null && primary.subCategories.isNotEmpty) {
+      for (final sub in primary.subCategories) {
+        // Direct ID match
+        if (allIds.contains(sub.id)) {
+          return sub.name;
+        }
+
+        // Subcategory name match against other category docs in categoryIds
+        final cleanSub = sub.name.toLowerCase().replaceAll(RegExp(r'[-_ ]'), '');
+        for (final id in allIds) {
+          final otherCat = categories.where((c) => c.id == id || c.slug == id).firstOrNull;
+          if (otherCat != null && otherCat.id != primary.id) {
+            final cleanOther = otherCat.name.toLowerCase().replaceAll(RegExp(r'[-_ ]'), '');
+            if (cleanOther == cleanSub || cleanOther.contains(cleanSub) || cleanSub.contains(cleanOther)) {
+              return sub.name;
+            }
+          }
+        }
+
+        // Title and tags keyword match
+        final cleanTitle = title.toLowerCase();
+        if (cleanSub.contains('bio') && cleanTitle.contains('bio')) {
+          return sub.name;
+        }
+        if (cleanSub.contains('organic') && cleanTitle.contains('organic')) {
+          return sub.name;
+        }
+        if (cleanSub.contains('chemical') && cleanTitle.contains('chemical')) {
+          return sub.name;
+        }
+      }
+    }
+
+    // 2. If another category is matched (e.g. "Organic Fungicides", "Bio-Pesticides", "Bio-Fertilizers")
+    for (final id in allIds) {
+      final otherCat = categories.where((c) => c.id == id || c.slug == id).firstOrNull;
+      if (otherCat != null && (primary == null || otherCat.id != primary.id)) {
+        return otherCat.name;
+      }
+    }
+
+    // 3. Direct subCategory string if non-empty and not an ObjectId
+    if (subCategory != null && subCategory!.isNotEmpty && !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(subCategory!)) {
+      return subCategory;
+    }
+
+    // 4. Product Type fallback if informative (e.g. "Powder", "Liquid", "Granules")
+    if (productType != null && productType!.isNotEmpty && productType!.toLowerCase() != category.toLowerCase()) {
+      return productType![0].toUpperCase() + productType!.substring(1).toLowerCase();
+    }
+
+    return null;
+  }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     List<String> imgList = [];
@@ -113,6 +330,7 @@ class ProductModel {
     List<ProductVariant> varList = [];
     if (json['variants'] != null && json['variants'] is List) {
       varList = (json['variants'] as List)
+          .whereType<Map>()
           .map((v) => ProductVariant.fromJson(Map<String, dynamic>.from(v)))
           .toList();
     }
@@ -132,44 +350,117 @@ class ProductModel {
       baseMrp = varList.first.mrp;
     }
 
-    int totalStock = json['stock'] is int ? json['stock'] : (int.tryParse(json['stock']?.toString() ?? '') ?? 0);
-    if (totalStock == 0 && json['inventoryQuantity'] != null) {
-      totalStock = int.tryParse(json['inventoryQuantity'].toString()) ?? 0;
+    int totalStock = 0;
+    final rawStock = json['stock'] ?? json['inventoryQuantity'];
+    if (rawStock is num) {
+      totalStock = rawStock.toInt();
+    } else if (rawStock != null) {
+      totalStock = int.tryParse(rawStock.toString()) ?? 0;
     }
     if (totalStock == 0 && varList.isNotEmpty) {
       totalStock = varList.fold(0, (sum, v) => sum + v.inventoryQuantity);
     }
 
+    String? rawCatId;
     String catName = 'General';
+
     if (json['category'] != null) {
-      catName = json['category'] is Map ? json['category']['name'] ?? 'General' : json['category'].toString();
-    } else if (json['categoryId'] != null) {
-      catName = json['categoryId'] is Map ? json['categoryId']['name'] ?? 'General' : json['categoryId'].toString();
-    } else if (json['productType'] != null && json['productType'].toString().isNotEmpty) {
-      catName = json['productType'].toString();
-    } else if (json['product_type'] != null && json['product_type'].toString().isNotEmpty) {
-      catName = json['product_type'].toString();
+      if (json['category'] is Map) {
+        catName = json['category']['name']?.toString() ?? json['category']['title']?.toString() ?? 'General';
+        rawCatId = json['category']['_id']?.toString() ?? json['category']['id']?.toString();
+      } else {
+        catName = json['category'].toString();
+      }
     }
 
+    if (json['categoryId'] != null) {
+      if (json['categoryId'] is Map) {
+        catName = json['categoryId']['name']?.toString() ?? json['categoryId']['title']?.toString() ?? catName;
+        rawCatId = json['categoryId']['_id']?.toString() ?? json['categoryId']['id']?.toString() ?? rawCatId;
+      } else {
+        rawCatId ??= json['categoryId'].toString();
+        if (catName == 'General') catName = json['categoryId'].toString();
+      }
+    }
+
+    final List<String> catIdsList = [];
+    if (json['categoryIds'] != null && json['categoryIds'] is List && (json['categoryIds'] as List).isNotEmpty) {
+      for (final item in json['categoryIds'] as List) {
+        if (item is Map) {
+          final cid = item['_id'] ?? item['id'];
+          if (cid != null) catIdsList.add(cid.toString());
+          catName = item['name']?.toString() ?? item['title']?.toString() ?? catName;
+        } else if (item != null) {
+          catIdsList.add(item.toString());
+        }
+      }
+    }
+    if (rawCatId != null && !catIdsList.contains(rawCatId)) {
+      catIdsList.add(rawCatId);
+    }
+
+    if (catName == 'General' && json['productType'] != null && json['productType'].toString().isNotEmpty) {
+      catName = json['productType'].toString();
+    }
+
+    final List<String> tagList = [];
+    if (json['tags'] != null && json['tags'] is List) {
+      for (final t in json['tags']) {
+        if (t != null && t.toString().isNotEmpty) {
+          tagList.add(t.toString());
+        }
+      }
+    }
+
+    final List<String> collectionList = [];
+    final rawCollections = json['assignedCollections'] ?? json['collections'] ?? json['assigned_collections'];
+    if (rawCollections != null && rawCollections is List) {
+      for (final c in rawCollections) {
+        if (c != null && c.toString().isNotEmpty) {
+          collectionList.add(c.toString());
+        }
+      }
+    }
+
+    String? resolvedSubCat = json['subCategory']?.toString() ??
+        json['subcategory']?.toString() ??
+        json['subCategoryId']?.toString() ??
+        json['sub_category']?.toString();
+
+    final pType = json['productType']?.toString();
+    if (resolvedSubCat == null && pType != null && pType.isNotEmpty && pType.toLowerCase() != catName.toLowerCase()) {
+      resolvedSubCat = pType;
+    }
+
+    final productStatus = (json['status']?.toString() ?? 'active').toLowerCase();
+    final isBogo = json['buy1get1'] == true || (json['title']?.toString().contains('1+1') ?? false);
+
     return ProductModel(
-      id: json['_id'] ?? json['id']?.toString() ?? '',
-      title: json['title'] ?? json['name'] ?? 'Untitled Product',
-      description: json['description'] ?? json['body_html'],
+      id: (json['_id'] ?? json['id'] ?? json['handle'] ?? '').toString(),
+      title: (json['title'] ?? json['name'] ?? 'Untitled Product').toString(),
+      description: json['description']?.toString() ?? json['bodyHtml']?.toString() ?? json['body_html']?.toString(),
       category: catName,
-      subCategory: json['subCategory'],
-      brand: json['brand'] ?? json['vendor'] ?? 'Krishi Bhandar',
+      categoryId: rawCatId,
+      categoryIds: catIdsList,
+      subCategory: resolvedSubCat,
+      productType: pType,
+      tags: tagList,
+      assignedCollections: collectionList,
+      brand: (json['vendor'] ?? json['brand'] ?? 'Krishi Bhandar').toString(),
+      status: productStatus,
+      buy1get1: isBogo,
       images: imgList,
       variants: varList,
       price: basePrice,
       mrp: baseMrp >= basePrice ? baseMrp : basePrice,
       stock: totalStock,
-      inStock: json['inStock'] ?? (totalStock > 0),
-      isPublished: json['isPublished'] ?? true,
-      isFeatured: json['isFeatured'] ?? false,
+      inStock: json['inStock'] == true || (productStatus == 'active'),
+      isPublished: json['isPublished'] != false && productStatus != 'draft' && productStatus != 'archived',
+      isFeatured: json['isFeatured'] == true || isBogo,
       rating: (json['rating'] is num) ? (json['rating'] as num).toDouble() : 4.5,
-      reviewsCount: json['reviewsCount'] ?? 0,
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
+      reviewsCount: (json['reviewsCount'] is num) ? (json['reviewsCount'] as num).toInt() : 0,
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt'].toString()) : null,
     );
   }
 
@@ -178,13 +469,21 @@ class ProductModel {
         'title': title,
         'description': description,
         'category': category,
+        if (categoryId != null) 'categoryId': categoryId,
+        'categoryIds': categoryIds,
         'subCategory': subCategory,
+        'productType': productType,
+        'tags': tags,
+        'assignedCollections': assignedCollections,
+        'vendor': brand,
         'brand': brand,
-        'images': images,
+        'status': status,
+        'buy1get1': buy1get1,
+        'images': images.map((u) => {'original': u, 'medium': u, 'low': u}).toList(),
         'variants': variants.map((v) => v.toJson()).toList(),
-        'price': price,
+        'price': price.toStringAsFixed(2),
+        'compareAtPrice': mrp.toStringAsFixed(2),
         'mrp': mrp,
-        'stock': stock,
         'inStock': inStock,
         'isPublished': isPublished,
         'isFeatured': isFeatured,
@@ -195,8 +494,15 @@ class ProductModel {
     String? title,
     String? description,
     String? category,
+    String? categoryId,
+    List<String>? categoryIds,
     String? subCategory,
+    String? productType,
+    List<String>? tags,
+    List<String>? assignedCollections,
     String? brand,
+    String? status,
+    bool? buy1get1,
     List<String>? images,
     List<ProductVariant>? variants,
     double? price,
@@ -211,8 +517,15 @@ class ProductModel {
       title: title ?? this.title,
       description: description ?? this.description,
       category: category ?? this.category,
+      categoryId: categoryId ?? this.categoryId,
+      categoryIds: categoryIds ?? this.categoryIds,
       subCategory: subCategory ?? this.subCategory,
+      productType: productType ?? this.productType,
+      tags: tags ?? this.tags,
+      assignedCollections: assignedCollections ?? this.assignedCollections,
       brand: brand ?? this.brand,
+      status: status ?? this.status,
+      buy1get1: buy1get1 ?? this.buy1get1,
       images: images ?? this.images,
       variants: variants ?? this.variants,
       price: price ?? this.price,

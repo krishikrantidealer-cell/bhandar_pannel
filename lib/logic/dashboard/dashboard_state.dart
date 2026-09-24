@@ -17,6 +17,8 @@ class DashboardState extends Equatable {
     this.errorMessage,
   });
 
+  bool get isLoading => status == DashboardStatus.loading;
+
   DashboardState copyWith({
     DashboardStatus? status,
     DashboardStats? stats,

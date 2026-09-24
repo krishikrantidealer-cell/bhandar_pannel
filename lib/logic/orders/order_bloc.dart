@@ -23,7 +23,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     }
   }
 
-  void _onUpdateOrderStatus(UpdateOrderStatusEvent event, Emitter<OrderState> emit) {
+  Future<void> _onUpdateOrderStatus(UpdateOrderStatusEvent event, Emitter<OrderState> emit) async {
     final updatedList = state.orders.map((o) {
       if (o.id == event.orderId) {
         return o.copyWith(status: event.newStatus);
@@ -31,5 +31,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       return o;
     }).toList();
     emit(state.copyWith(orders: updatedList));
+    try {
+      await repository.updateOrderStatus(event.orderId, event.newStatus.name);
+    } catch (_) {}
   }
 }

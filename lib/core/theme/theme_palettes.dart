@@ -30,8 +30,8 @@ class PaletteConfig {
     required this.accent,
     this.backgroundLight = const Color(0xFFF8FAFC),
     this.surfaceLight = Colors.white,
-    this.backgroundDark = const Color(0xFF0F172A),
-    this.surfaceDark = const Color(0xFF1E293B),
+    this.backgroundDark = const Color(0xFF0A0F1D),
+    this.surfaceDark = const Color(0xFF161E2E),
   });
 }
 

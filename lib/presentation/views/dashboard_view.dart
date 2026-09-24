@@ -11,6 +11,7 @@ import '../../logic/dashboard/dashboard_state.dart';
 import '../../models/order_model.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/status_badge.dart';
+import '../widgets/shimmer_loading.dart';
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -109,6 +110,20 @@ class DashboardView extends StatelessWidget {
 
                       final itemWidth = (width - ((crossAxisCount - 1) * 16)) / crossAxisCount;
 
+                      if (dashboardState.isLoading) {
+                        return Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: List.generate(
+                            4,
+                            (index) => SizedBox(
+                              width: itemWidth,
+                              child: const StatCardSkeleton(),
+                            ),
+                          ),
+                        );
+                      }
+
                       return Wrap(
                         spacing: 16,
                         runSpacing: 16,
@@ -189,7 +204,7 @@ class DashboardView extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Recent Orders Section
-                  _buildRecentOrders(context, orders, isDark),
+                  _buildRecentOrders(context, orders, isDark, dashboardState.isLoading),
                 ],
               ),
             );
@@ -450,6 +465,7 @@ class DashboardView extends StatelessWidget {
     BuildContext context,
     List<OrderModel> orders,
     bool isDark,
+    bool isLoading,
   ) {
     final theme = Theme.of(context);
     final recent = orders.take(5).toList();
@@ -476,7 +492,42 @@ class DashboardView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            if (recent.isEmpty)
+            if (isLoading)
+              Shimmer(
+                child: Column(
+                  children: List.generate(
+                    4,
+                    (index) => Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: theme.dividerTheme.color ?? Colors.grey.withValues(alpha: 0.2),
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const SkeletonBox(width: 36, height: 36, borderRadius: 8),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                SkeletonBox(width: 110, height: 13, borderRadius: 3),
+                                SizedBox(height: 5),
+                                SkeletonBox(width: 160, height: 10, borderRadius: 3),
+                              ],
+                            ),
+                          ),
+                          const SkeletonBadge(width: 70, height: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else if (recent.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(24.0),
                 child: Center(child: Text('No orders yet')),

@@ -82,17 +82,8 @@ class BhandarAdminApp extends StatelessWidget {
           themeMode: themeState.themeMode,
           theme: lightTheme,
           darkTheme: darkTheme,
-          builder: (context, child) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            final currentTheme = isDark ? darkTheme : lightTheme;
-
-            return AnimatedTheme(
-              data: currentTheme,
-              duration: const Duration(milliseconds: 450),
-              curve: Curves.easeInOutCubic,
-              child: child ?? const SizedBox.shrink(),
-            );
-          },
+          themeAnimationDuration: const Duration(milliseconds: 350),
+          themeAnimationCurve: Curves.easeInOutCubic,
         );
       },
     );

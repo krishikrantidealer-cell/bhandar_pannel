@@ -10,6 +10,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadProducts>(_onLoadProducts);
     on<SearchProducts>(_onSearchProducts);
     on<FilterProductsByCategory>(_onFilterProductsByCategory);
+    on<FilterProductsBySubCategory>(_onFilterProductsBySubCategory);
     on<AddProductEvent>(_onAddProduct);
     on<UpdateProductEvent>(_onUpdateProduct);
     on<DeleteProductEvent>(_onDeleteProduct);
@@ -33,9 +34,17 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   void _onFilterProductsByCategory(FilterProductsByCategory event, Emitter<ProductState> emit) {
     if (event.category == null || event.category!.isEmpty) {
-      emit(state.copyWith(clearCategory: true));
+      emit(state.copyWith(clearCategory: true, clearSubCategory: true));
     } else {
-      emit(state.copyWith(selectedCategory: event.category));
+      emit(state.copyWith(selectedCategory: event.category, clearSubCategory: true));
+    }
+  }
+
+  void _onFilterProductsBySubCategory(FilterProductsBySubCategory event, Emitter<ProductState> emit) {
+    if (event.subCategory == null || event.subCategory!.isEmpty) {
+      emit(state.copyWith(clearSubCategory: true));
+    } else {
+      emit(state.copyWith(selectedSubCategory: event.subCategory));
     }
   }
 

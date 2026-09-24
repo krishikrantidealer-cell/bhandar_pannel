@@ -8,6 +8,7 @@ import '../../logic/theme/theme_state.dart';
 import '../../models/collection_model.dart';
 import '../widgets/image_preview.dart';
 import '../widgets/status_badge.dart';
+import '../widgets/shimmer_loading.dart';
 
 class CollectionsView extends StatefulWidget {
   final bool isEmbedded;
@@ -303,6 +304,20 @@ class _CollectionsViewState extends State<CollectionsView> {
                         }
 
                         final itemWidth = (width - ((crossAxisCount - 1) * 20)) / crossAxisCount;
+
+                        if (collectionState.isLoading) {
+                          return Wrap(
+                            spacing: 20,
+                            runSpacing: 20,
+                            children: List.generate(
+                              6,
+                              (index) => SizedBox(
+                                width: itemWidth,
+                                child: CategoryCardSkeleton(borderRadius: themeState.borderRadius),
+                              ),
+                            ),
+                          );
+                        }
 
                         return Wrap(
                           spacing: 20,

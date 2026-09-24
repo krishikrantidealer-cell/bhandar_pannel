@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'route_paths.dart';
 import '../../logic/auth/auth_bloc.dart';
+import '../../models/product_model.dart';
 import '../../presentation/widgets/app_shell.dart';
 import '../../presentation/views/login_view.dart';
 // import '../../presentation/views/dashboard_view.dart';
 import '../../presentation/views/products_view.dart';
+import '../../presentation/views/product_details_view.dart';
+import '../../presentation/views/product_edit_view.dart';
 // import '../../presentation/views/categories_view.dart';
 // import '../../presentation/views/banners_view.dart';
 // import '../../presentation/views/coupons_view.dart';
@@ -79,6 +82,38 @@ class AppRouter {
               pageBuilder: (context, state) => const NoTransitionPage(
                 child: ProductsView(),
               ),
+            ),
+            GoRoute(
+              path: RoutePaths.productNew,
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: ProductEditView(),
+              ),
+            ),
+            GoRoute(
+              path: RoutePaths.productDetails,
+              pageBuilder: (context, state) {
+                final productId = state.pathParameters['id'] ?? '';
+                final productExtra = state.extra as ProductModel?;
+                return NoTransitionPage(
+                  child: ProductDetailsView(
+                    productId: productId,
+                    initialProduct: productExtra,
+                  ),
+                );
+              },
+            ),
+            GoRoute(
+              path: RoutePaths.productEdit,
+              pageBuilder: (context, state) {
+                final productId = state.pathParameters['id'] ?? '';
+                final productExtra = state.extra as ProductModel?;
+                return NoTransitionPage(
+                  child: ProductEditView(
+                    productId: productId,
+                    initialProduct: productExtra,
+                  ),
+                );
+              },
             ),
             // GoRoute(
             //   path: RoutePaths.categories,

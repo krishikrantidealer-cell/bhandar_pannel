@@ -14,6 +14,8 @@ class CategoryState extends Equatable {
     this.errorMessage,
   });
 
+  bool get isLoading => status == CategoryStatus.loading;
+
   CategoryState copyWith({
     CategoryStatus? status,
     List<CategoryModel>? categories,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'shimmer_loading.dart';
 
 class ImagePreview extends StatelessWidget {
   final String? url;
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final double borderRadius;
   final BoxFit fit;
 
@@ -16,10 +17,18 @@ class ImagePreview extends StatelessWidget {
     this.fit = BoxFit.cover,
   });
 
+  double _computeIconSize(double? dimension) {
+    if (dimension != null && dimension.isFinite && dimension > 0) {
+      return (dimension * 0.45).clamp(14.0, 48.0);
+    }
+    return 24.0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final iconSize = _computeIconSize(width ?? height);
 
     if (url == null || url!.isEmpty) {
       return Container(
@@ -29,10 +38,12 @@ class ImagePreview extends StatelessWidget {
           color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
           borderRadius: BorderRadius.circular(borderRadius),
         ),
-        child: Icon(
-          Icons.image_outlined,
-          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-          size: width * 0.5,
+        child: Center(
+          child: Icon(
+            Icons.image_outlined,
+            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+            size: iconSize,
+          ),
         ),
       );
     }
@@ -49,31 +60,22 @@ class ImagePreview extends StatelessWidget {
             width: width,
             height: height,
             color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-            child: Icon(
-              Icons.broken_image_outlined,
-              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-              size: width * 0.45,
+            child: Center(
+              child: Icon(
+                Icons.broken_image_outlined,
+                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                size: iconSize,
+              ),
             ),
           );
         },
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          return Container(
-            width: width,
-            height: height,
-            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-            child: Center(
-              child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-                ),
-              ),
+          return Shimmer(
+            child: SkeletonBox(
+              width: (width != null && width!.isFinite) ? width! : 48,
+              height: (height != null && height!.isFinite) ? height! : 48,
+              borderRadius: borderRadius,
             ),
           );
         },
@@ -81,3 +83,4 @@ class ImagePreview extends StatelessWidget {
     );
   }
 }
+

@@ -23,13 +23,18 @@ class CouponBloc extends Bloc<CouponEvent, CouponState> {
     }
   }
 
-  void _onToggleCouponStatus(ToggleCouponStatusEvent event, Emitter<CouponState> emit) {
+  Future<void> _onToggleCouponStatus(ToggleCouponStatusEvent event, Emitter<CouponState> emit) async {
+    bool nextActive = true;
     final updatedList = state.coupons.map((c) {
       if (c.id == event.couponId) {
-        return c.copyWith(isActive: !c.isActive);
+        nextActive = !c.isActive;
+        return c.copyWith(isActive: nextActive);
       }
       return c;
     }).toList();
     emit(state.copyWith(coupons: updatedList));
+    try {
+      await repository.updateCoupon(event.couponId, {'isActive': nextActive});
+    } catch (_) {}
   }
 }

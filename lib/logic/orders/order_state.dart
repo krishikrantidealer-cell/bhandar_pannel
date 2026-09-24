@@ -14,6 +14,8 @@ class OrderState extends Equatable {
     this.errorMessage,
   });
 
+  bool get isLoading => status == OrderStateStatus.loading;
+
   OrderState copyWith({
     OrderStateStatus? status,
     List<OrderModel>? orders,

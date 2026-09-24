@@ -3,19 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/routing/route_paths.dart';
 import '../../core/utils/responsive.dart';
 import '../../logic/theme/theme_bloc.dart';
-import '../../logic/theme/theme_event.dart';
 import '../../logic/theme/theme_state.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
-import '../../logic/products/product_bloc.dart';
-import '../../logic/products/product_event.dart';
-import '../../logic/categories/category_bloc.dart';
-import '../../logic/categories/category_event.dart';
-import '../../logic/collections/collection_bloc.dart';
-import '../../logic/collections/collection_event.dart';
-import '../../logic/banners/banner_bloc.dart';
-import '../../logic/banners/banner_event.dart';
 
 class TopBar extends StatelessWidget {
   final String currentPath;
@@ -60,6 +51,12 @@ class TopBar extends StatelessWidget {
     String sectionTitle = 'Products & Catalog Operations';
     if (currentPath == RoutePaths.products) {
       sectionTitle = 'Products & Catalog Operations';
+    } else if (currentPath == RoutePaths.productNew) {
+      sectionTitle = 'Create New Product';
+    } else if (currentPath.endsWith('/edit')) {
+      sectionTitle = 'Edit Product Catalog';
+    } else if (currentPath.startsWith('/products/')) {
+      sectionTitle = 'Product Details & Variants';
     }
 
     return BlocBuilder<ThemeBloc, ThemeState>(
@@ -71,12 +68,12 @@ class TopBar extends StatelessWidget {
             final userRole = user?.userType.name.toUpperCase() ?? 'ADMIN';
 
             return AnimatedContainer(
-              duration: const Duration(milliseconds: 450),
+              duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOutCubic,
               height: 70,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: isDark ? themeState.currentPalette.surfaceDark : themeState.currentPalette.surfaceLight,
                 border: Border(
                   bottom: BorderSide(
                     color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
@@ -123,90 +120,18 @@ class TopBar extends StatelessWidget {
                     ),
                   ),
 
-                  // Live Cloud Run Status Pill
-                  if (!isMobile)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      margin: const EdgeInsets.only(right: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF10B981),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            'Cloud Run Live',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF10B981),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // Refresh Data Button
-                  IconButton(
-                    icon: const Icon(Icons.refresh_rounded, size: 20),
-                    tooltip: 'Sync Live Catalog Data',
-                    onPressed: () {
-                      context.read<ProductBloc>().add(const LoadProducts());
-                      context.read<CategoryBloc>().add(const LoadCategories());
-                      context.read<CollectionBloc>().add(const LoadCollections());
-                      context.read<BannerBloc>().add(const LoadBanners());
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Syncing Catalog modules with Bhandar Cloud Run...'),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Dark/Light Theme Quick Toggler with Smooth Rotation & Scale Transition
-                  IconButton(
-                    icon: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 450),
-                      transitionBuilder: (child, animation) {
-                        return RotationTransition(
-                          turns: animation,
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: ScaleTransition(scale: animation, child: child),
-                          ),
-                        );
-                      },
-                      child: Icon(
-                        isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                        key: ValueKey<bool>(isDark),
-                        size: 20,
-                        color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF334155),
-                      ),
-                    ),
-                    tooltip: isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme',
-                    onPressed: () => context.read<ThemeBloc>().add(ToggleDarkMode(isDark)),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Admin Profile Menu
+                  // Admin Profile Menu Button
                   PopupMenuButton<String>(
                     tooltip: 'Admin Account Options',
+                    offset: const Offset(0, 46),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        width: 1,
+                      ),
+                    ),
+                    color: isDark ? const Color(0xFF161E2E) : Colors.white,
                     onSelected: (val) {
                       if (val == 'logout') {
                         _confirmLogout(context);
@@ -218,12 +143,21 @@ class TopBar extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(displayName, style: const TextStyle(fontWeight: FontWeight.w700)),
+                            Text(
+                              displayName,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
+                              ),
+                            ),
                             Text(
                               user?.email ?? 'admin@krishibhandar.com',
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
@@ -249,31 +183,54 @@ class TopBar extends StatelessWidget {
                           children: [
                             Icon(Icons.logout_rounded, size: 18, color: Color(0xFFEF4444)),
                             SizedBox(width: 8),
-                            Text('Sign Out', style: TextStyle(color: Color(0xFFEF4444))),
+                            Text('Sign Out', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w600)),
                           ],
                         ),
                       ),
                     ],
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeInOutCubic,
+                      height: 38,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(30),
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          width: 1,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundColor: themeState.currentPalette.primary,
-                            child: Text(
-                              displayName.isNotEmpty ? displayName[0].toUpperCase() : 'A',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  themeState.currentPalette.primary,
+                                  themeState.currentPalette.secondary,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Center(
+                              child: Text(
+                                displayName.isNotEmpty ? displayName[0].toUpperCase() : 'A',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
                           ),
@@ -281,13 +238,35 @@ class TopBar extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               displayName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: themeState.currentPalette.primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                userRole,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: themeState.currentPalette.primary,
+                                  letterSpacing: 0.3,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.arrow_drop_down, size: 16),
+                            Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 16,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            ),
                           ],
                         ],
                       ),

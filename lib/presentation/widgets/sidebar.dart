@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/routing/route_paths.dart';
+import '../../logic/auth/auth_bloc.dart';
+import '../../logic/auth/auth_state.dart';
 import '../../logic/theme/theme_bloc.dart';
 import '../../logic/theme/theme_event.dart';
 import '../../logic/theme/theme_state.dart';
 import '../../logic/products/product_bloc.dart';
 import '../../logic/products/product_state.dart';
-// import '../../logic/categories/category_bloc.dart';
-// import '../../logic/categories/category_state.dart';
-// import '../../logic/orders/order_bloc.dart';
-// import '../../logic/orders/order_state.dart';
 
 class Sidebar extends StatelessWidget {
   final String currentPath;
@@ -25,242 +23,329 @@ class Sidebar extends StatelessWidget {
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         final isCollapsed = themeState.isSidebarCollapsed;
+        final primaryColor = themeState.currentPalette.primary;
+        final secondaryColor = themeState.currentPalette.secondary;
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 450),
-          curve: Curves.easeInOutCubic,
-          width: isCollapsed ? 80 : 260,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            border: Border(
-              right: BorderSide(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Column(
-            children: [
-              // Branding Header
-              Container(
-                height: 70,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                alignment: Alignment.centerLeft,
-                child: isCollapsed
-                    ? Center(
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                themeState.currentPalette.primary,
-                                themeState.currentPalette.secondary,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'KB',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    : Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  themeState.currentPalette.primary,
-                                  themeState.currentPalette.secondary,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Center(
-                              child: Icon(Icons.agriculture_rounded, color: Colors.white, size: 24),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  themeState.brandName,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.3,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  'Admin Operations Web',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-
-              const Divider(height: 1),
-
-              // Nav Items List
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                  children: [
-                    // Dashboard
-                    // _buildNavItem(
-                    //   context,
-                    //   path: RoutePaths.dashboard,
-                    //   title: 'Dashboard',
-                    //   icon: Icons.dashboard_rounded,
-                    //   isSelected: currentPath == RoutePaths.dashboard,
-                    //   isCollapsed: isCollapsed,
-                    //   primaryColor: themeState.currentPalette.primary,
-                    // ),
-                    BlocBuilder<ProductBloc, ProductState>(
-                      builder: (context, prodState) {
-                        return _buildNavItem(
-                          context,
-                          path: RoutePaths.products,
-                          title: 'Products',
-                          icon: Icons.inventory_2_rounded,
-                          isSelected: currentPath == RoutePaths.products,
-                          badgeText: '${prodState.allProducts.length}',
-                          isCollapsed: isCollapsed,
-                          primaryColor: themeState.currentPalette.primary,
-                        );
-                      },
-                    ),
-                    // Categories
-                    // BlocBuilder<CategoryBloc, CategoryState>(
-                    //   builder: (context, catState) {
-                    //     return _buildNavItem(
-                    //       context,
-                    //       path: RoutePaths.categories,
-                    //       title: 'Categories',
-                    //       icon: Icons.category_rounded,
-                    //       isSelected: currentPath == RoutePaths.categories,
-                    //       badgeText: '${catState.categories.length}',
-                    //       isCollapsed: isCollapsed,
-                    //       primaryColor: themeState.currentPalette.primary,
-                    //     );
-                    //   },
-                    // ),
-                    // Banners
-                    // _buildNavItem(
-                    //   context,
-                    //   path: RoutePaths.banners,
-                    //   title: 'Banners',
-                    //   icon: Icons.view_carousel_rounded,
-                    //   isSelected: currentPath == RoutePaths.banners,
-                    //   isCollapsed: isCollapsed,
-                    //   primaryColor: themeState.currentPalette.primary,
-                    // ),
-                    // Coupons
-                    // _buildNavItem(
-                    //   context,
-                    //   path: RoutePaths.coupons,
-                    //   title: 'Coupons',
-                    //   icon: Icons.local_offer_rounded,
-                    //   isSelected: currentPath == RoutePaths.coupons,
-                    //   isCollapsed: isCollapsed,
-                    //   primaryColor: themeState.currentPalette.primary,
-                    // ),
-                    // Orders
-                    // BlocBuilder<OrderBloc, OrderState>(
-                    //   builder: (context, ordState) {
-                    //     return _buildNavItem(
-                    //       context,
-                    //       path: RoutePaths.orders,
-                    //       title: 'Orders',
-                    //       icon: Icons.shopping_bag_rounded,
-                    //       isSelected: currentPath == RoutePaths.orders,
-                    //       badgeText: '${ordState.orders.length}',
-                    //       badgeColor: const Color(0xFFEF4444),
-                    //       isCollapsed: isCollapsed,
-                    //       primaryColor: themeState.currentPalette.primary,
-                    //     );
-                    //   },
-                    // ),
-                    // const SizedBox(height: 16),
-                    // if (!isCollapsed)
-                    //   Padding(
-                    //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    //     child: Text(
-                    //       'PREFERENCES & SYSTEM',
-                    //       style: TextStyle(
-                    //         fontSize: 10,
-                    //         fontWeight: FontWeight.w700,
-                    //         letterSpacing: 1.0,
-                    //         color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // Theme & Settings
-                    // _buildNavItem(
-                    //   context,
-                    //   path: RoutePaths.settings,
-                    //   title: 'Theme & Settings',
-                    //   icon: Icons.tune_rounded,
-                    //   isSelected: currentPath == RoutePaths.settings,
-                    //   isCollapsed: isCollapsed,
-                    //   primaryColor: themeState.currentPalette.primary,
-                    // ),
-                  ],
+        return ClipRect(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCubic,
+            width: isCollapsed ? 76 : 256,
+            decoration: BoxDecoration(
+              color: isDark ? themeState.currentPalette.surfaceDark : themeState.currentPalette.surfaceLight,
+              border: Border(
+                right: BorderSide(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  width: 1,
                 ),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(2, 0),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // ── Branding Header ──────────────────────────────────────────────
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOutCubic,
+                  height: 68,
+                  padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: isDark ? const Color(0xFF334155).withValues(alpha: 0.6) : const Color(0xFFE2E8F0),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: isCollapsed
+                      ? Center(
+                          child: Tooltip(
+                            message: themeState.brandName,
+                            child: Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [primaryColor, secondaryColor],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryColor.withValues(alpha: 0.35),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.agriculture_rounded, color: Colors.white, size: 20),
+                              ),
+                            ),
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [primaryColor, secondaryColor],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryColor.withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.agriculture_rounded, color: Colors.white, size: 20),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          themeState.brandName,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: -0.3,
+                                            color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                        decoration: BoxDecoration(
+                                          color: primaryColor.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: primaryColor.withValues(alpha: 0.25), width: 0.8),
+                                        ),
+                                        child: Text(
+                                          'ERP',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w800,
+                                            color: primaryColor,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF10B981),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Expanded(
+                                        child: Text(
+                                          'Admin Operations',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
 
-              const Divider(height: 1),
-
-              // Bottom Collapse / Expand Button
-              InkWell(
-                onTap: () => context.read<ThemeBloc>().add(const ToggleSidebar()),
-                child: Container(
-                  height: 54,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment:
-                        isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
+                // ── Nav Items List ───────────────────────────────────────────────
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     children: [
                       if (!isCollapsed)
-                        Text(
-                          'Collapse Sidebar',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                            fontWeight: FontWeight.w600,
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+                          child: Text(
+                            'CATALOG MANAGEMENT',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
+                              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      Icon(
-                        isCollapsed ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
-                        size: 20,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+
+                      // Products Item
+                      BlocBuilder<ProductBloc, ProductState>(
+                        builder: (context, prodState) {
+                          final isSelected = currentPath.startsWith(RoutePaths.products);
+                          return _buildNavItem(
+                            context,
+                            path: RoutePaths.products,
+                            title: 'Products Catalog',
+                            icon: Icons.inventory_2_rounded,
+                            isSelected: isSelected,
+                            badgeText: '${prodState.allProducts.length}',
+                            isCollapsed: isCollapsed,
+                            primaryColor: primaryColor,
+                            borderRadius: themeState.borderRadius,
+                          );
+                        },
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
+
+                // ── Admin User Card ──────────────────────────────────────────────
+                if (!isCollapsed)
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, authState) {
+                      final userName = authState.currentUser?.name ?? 'Admin User';
+                      final userPhone = authState.currentUser?.phone ?? '+91 9876543210';
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(themeState.borderRadius),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFE2E8F0),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: primaryColor.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: primaryColor.withValues(alpha: 0.3), width: 1),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 12,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userName,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    userPhone,
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                // ── Divider ──────────────────────────────────────────────────────
+                Divider(
+                  height: 1,
+                  color: isDark ? const Color(0xFF334155).withValues(alpha: 0.6) : const Color(0xFFE2E8F0),
+                ),
+
+                // ── Collapse / Expand Footer Button ──────────────────────────────
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.read<ThemeBloc>().add(const ToggleSidebar()),
+                    child: Container(
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: Row(
+                        mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                        children: [
+                          Icon(
+                            isCollapsed ? Icons.keyboard_double_arrow_right_rounded : Icons.keyboard_double_arrow_left_rounded,
+                            size: 18,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          ),
+                          if (!isCollapsed) ...[
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Collapse Sidebar',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -275,6 +360,7 @@ class Sidebar extends StatelessWidget {
     required bool isSelected,
     required bool isCollapsed,
     required Color primaryColor,
+    required double borderRadius,
     String? badgeText,
     Color? badgeColor,
   }) {
@@ -282,74 +368,141 @@ class Sidebar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Tooltip(
         message: isCollapsed ? title : '',
-        child: InkWell(
-          onTap: () {
-            if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) {
-              Navigator.of(context).pop();
-            }
-            context.go(path);
-          },
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isCollapsed ? 0 : 14,
-              vertical: 11,
-            ),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? primaryColor.withValues(alpha: isDark ? 0.2 : 0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
-              border: isSelected
-                  ? Border.all(color: primaryColor.withValues(alpha: 0.3), width: 1)
-                  : null,
-            ),
-            child: Row(
-              mainAxisAlignment:
-                  isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
+        waitDuration: const Duration(milliseconds: 300),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: InkWell(
+            onTap: () {
+              if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) {
+                Navigator.of(context).pop();
+              }
+              context.go(path);
+            },
+            borderRadius: BorderRadius.circular(borderRadius),
+            hoverColor: primaryColor.withValues(alpha: isDark ? 0.08 : 0.05),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: EdgeInsets.symmetric(
+                horizontal: isCollapsed ? 0 : 10,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? primaryColor.withValues(alpha: isDark ? 0.18 : 0.10)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(borderRadius),
+                border: Border.all(
                   color: isSelected
-                      ? primaryColor
-                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      ? primaryColor.withValues(alpha: isDark ? 0.35 : 0.25)
+                      : Colors.transparent,
+                  width: 1,
                 ),
-                if (!isCollapsed) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected
-                            ? primaryColor
-                            : (isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155)),
-                      ),
-                    ),
-                  ),
-                  if (badgeText != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: (badgeColor ?? primaryColor).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        badgeText,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: badgeColor ?? primaryColor,
+              ),
+              child: isCollapsed
+                  ? Center(
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? primaryColor.withValues(alpha: isDark ? 0.25 : 0.15)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            icon,
+                            size: 18,
+                            color: isSelected
+                                ? primaryColor
+                                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                          ),
                         ),
                       ),
+                    )
+                  : ClipRect(
+                      child: Row(
+                        children: [
+                          if (isSelected)
+                            Container(
+                              width: 3.5,
+                              height: 16,
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                                borderRadius: BorderRadius.circular(2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryColor.withValues(alpha: 0.5),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? primaryColor.withValues(alpha: isDark ? 0.25 : 0.15)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                icon,
+                                size: 17,
+                                color: isSelected
+                                    ? primaryColor
+                                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected
+                                    ? (isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A))
+                                    : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                                letterSpacing: -0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (badgeText != null) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: (badgeColor ?? primaryColor).withValues(alpha: isDark ? 0.2 : 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: (badgeColor ?? primaryColor).withValues(alpha: isDark ? 0.35 : 0.25),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                badgeText,
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: badgeColor ?? primaryColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                ],
-              ],
             ),
           ),
         ),
