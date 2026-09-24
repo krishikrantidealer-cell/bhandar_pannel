@@ -27,22 +27,42 @@ class OrderItem {
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
+    double price = 0.0;
+    if (json['price'] != null) {
+      price = (json['price'] is num) ? (json['price'] as num).toDouble() : (double.tryParse(json['price']?.toString() ?? '0') ?? 0.0);
+    } else if (json['unitPrice'] != null) {
+      price = (json['unitPrice'] is num) ? (json['unitPrice'] as num).toDouble() : (double.tryParse(json['unitPrice']?.toString() ?? '0') ?? 0.0);
+    }
+
+    int qty = 1;
+    if (json['quantity'] != null) {
+      qty = json['quantity'] is int ? json['quantity'] : (int.tryParse(json['quantity']?.toString() ?? '1') ?? 1);
+    }
+
+    double tot = price * qty;
+    if (json['totalAmount'] != null) {
+      tot = (json['totalAmount'] is num) ? (json['totalAmount'] as num).toDouble() : (double.tryParse(json['totalAmount']?.toString() ?? '0') ?? tot);
+    }
+
     return OrderItem(
       productId: json['productId'] ?? json['product_id'] ?? json['id'] ?? '',
-      title: json['title'] ?? json['name'] ?? 'Item',
-      variantTitle: json['variantTitle'] ?? json['variant_title'],
-      quantity: json['quantity'] ?? 1,
-      unitPrice: (json['unitPrice'] is num) ? (json['unitPrice'] as num).toDouble() : (double.tryParse(json['unitPrice']?.toString() ?? '0') ?? 0.0),
-      totalAmount: (json['totalAmount'] is num) ? (json['totalAmount'] as num).toDouble() : (double.tryParse(json['totalAmount']?.toString() ?? '0') ?? 0.0),
+      title: json['name'] ?? json['title'] ?? 'Item',
+      variantTitle: json['sku'] ?? json['variantTitle'] ?? json['variant_title'],
+      quantity: qty,
+      unitPrice: price,
+      totalAmount: tot,
       image: json['image'] ?? json['imageUrl'],
     );
   }
 
   Map<String, dynamic> toJson() => {
         'productId': productId,
+        'name': title,
         'title': title,
         'variantTitle': variantTitle,
+        'sku': variantTitle,
         'quantity': quantity,
+        'price': unitPrice,
         'unitPrice': unitPrice,
         'totalAmount': totalAmount,
         'image': image,
@@ -88,40 +108,103 @@ class OrderModel {
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     OrderStatus oStatus = OrderStatus.pending;
-    final s = (json['status'] ?? '').toString().toLowerCase();
+    final s = (json['status'] ?? json['fulfillmentStatus'] ?? '').toString().toLowerCase();
     if (s.contains('confirm')) {
       oStatus = OrderStatus.confirmed;
     } else if (s.contains('process')) {
       oStatus = OrderStatus.processing;
     } else if (s.contains('ship')) {
       oStatus = OrderStatus.shipped;
-    } else if (s.contains('deliver')) {
+    } else if (s.contains('deliver') || s.contains('complete')) {
       oStatus = OrderStatus.delivered;
-    } else if (s.contains('cancel')) {
+    } else if (s.contains('cancel') || s.contains('refund')) {
       oStatus = OrderStatus.cancelled;
     }
 
     List<OrderItem> itemsList = [];
-    if (json['items'] != null && json['items'] is List) {
-      itemsList = (json['items'] as List)
+    final rawItems = json['lineItems'] ?? json['items'];
+    if (rawItems != null && rawItems is List) {
+      itemsList = rawItems
           .map((i) => OrderItem.fromJson(Map<String, dynamic>.from(i)))
           .toList();
     }
 
+    String custName = 'Farmer Customer';
+    if (json['shippingAddress'] is Map && json['shippingAddress']['name'] != null && json['shippingAddress']['name'].toString().isNotEmpty) {
+      custName = json['shippingAddress']['name'].toString();
+    } else if (json['billingAddress'] is Map && json['billingAddress']['name'] != null && json['billingAddress']['name'].toString().isNotEmpty) {
+      custName = json['billingAddress']['name'].toString();
+    } else if (json['customerName'] != null) {
+      custName = json['customerName'].toString();
+    } else if (json['customer'] is Map && json['customer']['name'] != null) {
+      custName = json['customer']['name'].toString();
+    }
+
+    String custPhone = json['phone'] ?? json['customerPhone'] ?? (json['customer'] is Map ? json['customer']['phone'] : null) ?? '+91 9876543210';
+    String? custEmail = json['email'] ?? json['customerEmail'] ?? (json['customer'] is Map ? json['customer']['email'] : null);
+
+    String shipAddr = 'Village Agri Sector, Maharashtra, India';
+    if (json['shippingAddress'] is String && json['shippingAddress'].toString().isNotEmpty) {
+      shipAddr = json['shippingAddress'].toString();
+    } else if (json['shippingAddress'] is Map) {
+      final sa = json['shippingAddress'] as Map;
+      final parts = [
+        sa['address1'] ?? sa['street'],
+        sa['address2'],
+        sa['city'],
+        sa['province'],
+        sa['zip'],
+        sa['country'] ?? 'India'
+      ].where((p) => p != null && p.toString().trim().isNotEmpty).toList();
+      if (parts.isNotEmpty) shipAddr = parts.join(', ');
+    } else if (json['address'] != null) {
+      shipAddr = json['address'].toString();
+    }
+
+    double subTot = 0.0;
+    if (json['subtotal'] != null) {
+      subTot = (json['subtotal'] is num) ? (json['subtotal'] as num).toDouble() : (double.tryParse(json['subtotal']?.toString() ?? '0') ?? 0.0);
+    }
+
+    double disc = 0.0;
+    if (json['discountAmount'] != null) {
+      disc = (json['discountAmount'] is num) ? (json['discountAmount'] as num).toDouble() : (double.tryParse(json['discountAmount']?.toString() ?? '0') ?? 0.0);
+    } else if (json['discount'] != null) {
+      disc = (json['discount'] is num) ? (json['discount'] as num).toDouble() : (double.tryParse(json['discount']?.toString() ?? '0') ?? 0.0);
+    }
+
+    double delCharge = 0.0;
+    if (json['shipping'] != null) {
+      delCharge = (json['shipping'] is num) ? (json['shipping'] as num).toDouble() : (double.tryParse(json['shipping']?.toString() ?? '0') ?? 0.0);
+    } else if (json['deliveryCharge'] != null) {
+      delCharge = (json['deliveryCharge'] is num) ? (json['deliveryCharge'] as num).toDouble() : (double.tryParse(json['deliveryCharge']?.toString() ?? '0') ?? 0.0);
+    }
+
+    double totAmt = subTot;
+    if (json['total'] != null) {
+      totAmt = (json['total'] is num) ? (json['total'] as num).toDouble() : (double.tryParse(json['total']?.toString() ?? '0') ?? subTot);
+    } else if (json['totalAmount'] != null) {
+      totAmt = (json['totalAmount'] is num) ? (json['totalAmount'] as num).toDouble() : (double.tryParse(json['totalAmount']?.toString() ?? '0') ?? subTot);
+    }
+
+    String orderNum = json['name'] ?? json['orderNumber'] ?? json['order_number'] ?? '#KB-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+    String payMethod = json['paymentMethod'] ?? 'Razorpay Online';
+    String payStatus = json['financialStatus'] ?? json['paymentStatus'] ?? 'Completed';
+
     return OrderModel(
       id: json['_id'] ?? json['id']?.toString() ?? '',
-      orderNumber: json['orderNumber'] ?? json['order_number'] ?? '#KB-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-      customerName: json['customerName'] ?? (json['customer'] != null ? json['customer']['name'] : 'Farmer Customer') ?? 'Farmer Customer',
-      customerPhone: json['customerPhone'] ?? (json['customer'] != null ? json['customer']['phone'] : '+91 9876543210') ?? '+91 9876543210',
-      customerEmail: json['customerEmail'],
-      shippingAddress: json['shippingAddress'] ?? json['address'] ?? 'Village Agri Sector, Maharashtra, India',
+      orderNumber: orderNum,
+      customerName: custName,
+      customerPhone: custPhone,
+      customerEmail: custEmail,
+      shippingAddress: shipAddr,
       items: itemsList,
-      subtotal: (json['subtotal'] is num) ? (json['subtotal'] as num).toDouble() : (double.tryParse(json['subtotal']?.toString() ?? '0') ?? 0.0),
-      discount: (json['discount'] is num) ? (json['discount'] as num).toDouble() : (double.tryParse(json['discount']?.toString() ?? '0') ?? 0.0),
-      deliveryCharge: (json['deliveryCharge'] is num) ? (json['deliveryCharge'] as num).toDouble() : 0.0,
-      totalAmount: (json['totalAmount'] is num) ? (json['totalAmount'] as num).toDouble() : (double.tryParse(json['totalAmount']?.toString() ?? '0') ?? 0.0),
-      paymentMethod: json['paymentMethod'] ?? 'Razorpay Online',
-      paymentStatus: json['paymentStatus'] ?? 'Completed',
+      subtotal: subTot,
+      discount: disc,
+      deliveryCharge: delCharge,
+      totalAmount: totAmt,
+      paymentMethod: payMethod,
+      paymentStatus: payStatus,
       status: oStatus,
       createdAt: json['createdAt'] != null ? (DateTime.tryParse(json['createdAt']) ?? DateTime.now()) : DateTime.now(),
       deliveredAt: json['deliveredAt'] != null ? DateTime.tryParse(json['deliveredAt']) : null,

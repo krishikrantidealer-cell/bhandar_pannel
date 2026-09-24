@@ -303,12 +303,15 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                                 children: const [
                                   Icon(Icons.lock_outline_rounded, size: 14, color: Color(0xFFA7F3D0)),
                                   SizedBox(width: 6),
-                                  Text(
-                                    'Authorized Administrative Access • SSL Encrypted',
-                                    style: TextStyle(
-                                      color: Color(0xFFA7F3D0),
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w500,
+                                  Expanded(
+                                    child: Text(
+                                      'Authorized Administrative Access • SSL Encrypted',
+                                      style: TextStyle(
+                                        color: Color(0xFFA7F3D0),
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],

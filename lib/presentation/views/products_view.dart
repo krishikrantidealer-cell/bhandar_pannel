@@ -99,11 +99,12 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                       ),
                       const SizedBox(height: 14),
                       DropdownButtonFormField<String>(
+                        isExpanded: true,
                         initialValue: selectedCategory,
                         decoration: const InputDecoration(labelText: 'Category *'),
                         dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
                         items: catState.categories.map((c) {
-                          return DropdownMenuItem(value: c.name, child: Text(c.name));
+                          return DropdownMenuItem(value: c.name, child: Text(c.name, overflow: TextOverflow.ellipsis));
                         }).toList(),
                         onChanged: (val) {
                           if (val != null) setModalState(() => selectedCategory = val);
@@ -287,6 +288,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                   const SizedBox(width: 16),
                   Expanded(
                     child: DropdownButtonFormField<String?>(
+                      isExpanded: true,
                       initialValue: productState.selectedCategory,
                       decoration: const InputDecoration(
                         labelText: 'Filter by Category',
@@ -294,9 +296,9 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                       ),
                       dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
                       items: [
-                        const DropdownMenuItem(value: null, child: Text('All Categories')),
+                        const DropdownMenuItem(value: null, child: Text('All Categories', overflow: TextOverflow.ellipsis)),
                         ...categoryState.categories.map((c) {
-                          return DropdownMenuItem(value: c.name, child: Text(c.name));
+                          return DropdownMenuItem(value: c.name, child: Text(c.name, overflow: TextOverflow.ellipsis));
                         }),
                       ],
                       onChanged: (val) =>

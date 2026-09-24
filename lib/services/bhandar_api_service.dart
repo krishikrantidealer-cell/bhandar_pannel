@@ -271,10 +271,16 @@ class BhandarApiService {
         return response
             .map((item) => CouponModel.fromJson(Map<String, dynamic>.from(item)))
             .toList();
-      } else if (response is Map && response['coupons'] is List) {
-        return (response['coupons'] as List)
-            .map((item) => CouponModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
+      } else if (response is Map) {
+        if (response['coupons'] is List) {
+          return (response['coupons'] as List)
+              .map((item) => CouponModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        } else if (response['data'] is List) {
+          return (response['data'] as List)
+              .map((item) => CouponModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        }
       }
       return MockDataService.getCoupons();
     } catch (_) {
@@ -290,10 +296,16 @@ class BhandarApiService {
         return response
             .map((item) => OrderModel.fromJson(Map<String, dynamic>.from(item)))
             .toList();
-      } else if (response is Map && response['orders'] is List) {
-        return (response['orders'] as List)
-            .map((item) => OrderModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
+      } else if (response is Map) {
+        if (response['orders'] is List) {
+          return (response['orders'] as List)
+              .map((item) => OrderModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        } else if (response['data'] is List) {
+          return (response['data'] as List)
+              .map((item) => OrderModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        }
       }
       return MockDataService.getOrders();
     } catch (_) {
@@ -306,7 +318,8 @@ class BhandarApiService {
     try {
       final response = await apiClient.get('/api/dashboard/stats');
       if (response is Map) {
-        return DashboardStats.fromJson(Map<String, dynamic>.from(response['data'] ?? response));
+        final statData = response['data'] ?? response['stats'] ?? response;
+        return DashboardStats.fromJson(Map<String, dynamic>.from(statData));
       }
     } catch (_) {}
     return MockDataService.getDashboardStats();
