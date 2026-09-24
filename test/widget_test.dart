@@ -5,7 +5,7 @@ import 'package:bhandar_pannel/main.dart';
 import 'package:bhandar_pannel/core/config/app_config.dart';
 import 'package:bhandar_pannel/core/network/api_client.dart';
 import 'package:bhandar_pannel/core/routing/app_router.dart';
-import 'package:bhandar_pannel/data/datasources/bhandar_remote_datasource.dart';
+import 'package:bhandar_pannel/services/bhandar_api_service.dart';
 import 'package:bhandar_pannel/data/repositories/bhandar_repository.dart';
 import 'package:bhandar_pannel/data/models/user_model.dart';
 import 'package:bhandar_pannel/logic/auth/auth_bloc.dart';
@@ -26,8 +26,8 @@ void main() {
     addTearDown(() => tester.view.resetPhysicalSize());
 
     final apiClient = ApiClient(baseUrl: AppConfig.defaultApiBaseUrl);
-    final remoteDataSource = BhandarRemoteDataSourceImpl(apiClient: apiClient);
-    final repository = BhandarRepository(remoteDataSource: remoteDataSource);
+    final apiService = BhandarApiService(apiClient: apiClient);
+    final repository = BhandarRepository(apiService: apiService);
 
     final authBloc = AuthBloc(repository: repository);
     final router = AppRouter.createRouter(authBloc);

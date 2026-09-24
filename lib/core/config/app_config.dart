@@ -5,6 +5,6 @@ class AppConfig {
   static const String localApiBaseUrl = 'http://localhost:8000';
   
   static const String appVersion = '1.0.0';
-  static const String supportEmail = 'support@krishibhandar.in';
-  static const String documentationUrl = 'https://krishibhandar.in/docs';
+  static const String supportEmail = 'support@krishibhandar.com';
+  static const String documentationUrl = 'https://krishibhandar.com/docs';
 }

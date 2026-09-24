@@ -9,7 +9,8 @@ import '../../models/category_model.dart';
 import '../widgets/image_preview.dart';
 
 class CategoriesView extends StatefulWidget {
-  const CategoriesView({super.key});
+  final bool isEmbedded;
+  const CategoriesView({super.key, this.isEmbedded = false});
 
   @override
   State<CategoriesView> createState() => _CategoriesViewState();
@@ -178,7 +179,7 @@ class _CategoriesViewState extends State<CategoriesView> {
             final categories = categoryState.categories;
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(widget.isEmbedded ? 16 : 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

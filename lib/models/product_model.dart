@@ -91,18 +91,22 @@ class ProductModel {
     if (json['images'] != null && json['images'] is List) {
       for (var img in json['images']) {
         if (img is String) {
-          imgList.add(img);
-        } else if (img is Map && img.containsKey('src')) {
-          imgList.add(img['src']);
-        } else if (img is Map && img.containsKey('url')) {
-          imgList.add(img['url']);
+          if (img.isNotEmpty) imgList.add(img);
+        } else if (img is Map) {
+          final url = img['original'] ?? img['medium'] ?? img['low'] ?? img['src'] ?? img['url'];
+          if (url != null && url.toString().isNotEmpty) {
+            imgList.add(url.toString());
+          }
         }
       }
     } else if (json['image'] != null) {
-      if (json['image'] is String) {
-        imgList.add(json['image']);
-      } else if (json['image'] is Map && json['image'].containsKey('src')) {
-        imgList.add(json['image']['src']);
+      if (json['image'] is String && json['image'].toString().isNotEmpty) {
+        imgList.add(json['image'].toString());
+      } else if (json['image'] is Map) {
+        final url = json['image']['original'] ?? json['image']['medium'] ?? json['image']['src'] ?? json['image']['url'];
+        if (url != null && url.toString().isNotEmpty) {
+          imgList.add(url.toString());
+        }
       }
     }
 
@@ -128,16 +132,30 @@ class ProductModel {
       baseMrp = varList.first.mrp;
     }
 
-    int totalStock = json['stock'] ?? json['inventoryQuantity'] ?? 0;
+    int totalStock = json['stock'] is int ? json['stock'] : (int.tryParse(json['stock']?.toString() ?? '') ?? 0);
+    if (totalStock == 0 && json['inventoryQuantity'] != null) {
+      totalStock = int.tryParse(json['inventoryQuantity'].toString()) ?? 0;
+    }
     if (totalStock == 0 && varList.isNotEmpty) {
       totalStock = varList.fold(0, (sum, v) => sum + v.inventoryQuantity);
+    }
+
+    String catName = 'General';
+    if (json['category'] != null) {
+      catName = json['category'] is Map ? json['category']['name'] ?? 'General' : json['category'].toString();
+    } else if (json['categoryId'] != null) {
+      catName = json['categoryId'] is Map ? json['categoryId']['name'] ?? 'General' : json['categoryId'].toString();
+    } else if (json['productType'] != null && json['productType'].toString().isNotEmpty) {
+      catName = json['productType'].toString();
+    } else if (json['product_type'] != null && json['product_type'].toString().isNotEmpty) {
+      catName = json['product_type'].toString();
     }
 
     return ProductModel(
       id: json['_id'] ?? json['id']?.toString() ?? '',
       title: json['title'] ?? json['name'] ?? 'Untitled Product',
       description: json['description'] ?? json['body_html'],
-      category: json['category'] ?? json['product_type'] ?? 'General',
+      category: catName,
       subCategory: json['subCategory'],
       brand: json['brand'] ?? json['vendor'] ?? 'Krishi Bhandar',
       images: imgList,

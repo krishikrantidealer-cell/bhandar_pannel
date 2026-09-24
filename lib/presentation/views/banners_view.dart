@@ -9,7 +9,8 @@ import '../widgets/image_preview.dart';
 import '../widgets/status_badge.dart';
 
 class BannersView extends StatelessWidget {
-  const BannersView({super.key});
+  final bool isEmbedded;
+  const BannersView({super.key, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class BannersView extends StatelessWidget {
             final banners = bannerState.banners;
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(isEmbedded ? 16 : 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

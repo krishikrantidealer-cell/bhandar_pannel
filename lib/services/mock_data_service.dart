@@ -1,4 +1,5 @@
 import '../models/category_model.dart';
+import '../models/collection_model.dart';
 import '../models/product_model.dart';
 import '../models/banner_model.dart';
 import '../models/coupon_model.dart';
@@ -382,5 +383,66 @@ class MockDataService {
         RevenueDataPoint(label: 'Sun', amount: 63420, orders: 220),
       ],
     );
+  }
+
+  static List<CollectionModel> getCollections() {
+    return [
+      CollectionModel(
+        id: 'col_featured',
+        name: 'Featured Products',
+        slug: 'featured-products',
+        description: 'Handpicked top performing agricultural inputs and formulations',
+        bannerImage: 'https://storage.googleapis.com/bhandar-product-images/banners/category/fungicides_full.webp',
+        bannerTitle: 'Top Performing Crop Solutions',
+        isActive: true,
+        priority: 10,
+        subCollections: [
+          const SubCollectionModel(name: 'Top Sellers', slug: 'top-sellers', isActive: true),
+          const SubCollectionModel(name: 'New Releases', slug: 'new-releases', isActive: true),
+        ],
+      ),
+      CollectionModel(
+        id: 'col_bogo',
+        name: 'Buy 1 Get 1 Deals',
+        slug: 'buy-1-get-1',
+        description: 'Exclusive combo offers and double-pack discounts',
+        bannerImage: 'https://storage.googleapis.com/bhandar-product-images/banners/category/insecticides_full.webp',
+        bannerTitle: 'Double Value Farm Packs',
+        isActive: true,
+        priority: 9,
+        subCollections: [
+          const SubCollectionModel(name: 'Insecticide Combos', slug: 'insecticide-combos', isActive: true),
+          const SubCollectionModel(name: 'Fungicide Combos', slug: 'fungicide-combos', isActive: true),
+        ],
+      ),
+      CollectionModel(
+        id: 'col_monsoon',
+        name: 'Monsoon Special Care',
+        slug: 'monsoon-special',
+        description: 'Essential preventive sprays and fungal treatments for heavy rainfall season',
+        bannerImage: 'https://storage.googleapis.com/bhandar-product-images/banners/category/herbicides_full.webp',
+        bannerTitle: 'Kharif Crop Rain Defense',
+        isActive: true,
+        priority: 8,
+        subCollections: [
+          const SubCollectionModel(name: 'Rain-Fast Sprays', slug: 'rain-fast-sprays', isActive: true),
+          const SubCollectionModel(name: 'Root Rot Blockers', slug: 'root-rot-blockers', isActive: true),
+        ],
+      ),
+      CollectionModel(
+        id: 'col_cotton',
+        name: 'Cotton Special Protection',
+        slug: 'cotton-special',
+        description: 'Targeted bollworm, whitefly and sucking pest packages for cotton growers',
+        bannerImage: 'https://storage.googleapis.com/bhandar-product-images/banners/category/pgrs_full.webp',
+        bannerTitle: 'Complete Cotton Crop Shield',
+        isActive: true,
+        priority: 7,
+        subCollections: [
+          const SubCollectionModel(name: 'Pink Bollworm Defense', slug: 'pink-bollworm-defense', isActive: true),
+          const SubCollectionModel(name: 'Square Dropping Preventers', slug: 'square-dropping-preventers', isActive: true),
+        ],
+      ),
+    ];
   }
 }

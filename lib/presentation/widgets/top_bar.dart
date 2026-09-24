@@ -8,18 +8,14 @@ import '../../logic/theme/theme_state.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
-import '../../logic/dashboard/dashboard_bloc.dart';
-import '../../logic/dashboard/dashboard_event.dart';
 import '../../logic/products/product_bloc.dart';
 import '../../logic/products/product_event.dart';
 import '../../logic/categories/category_bloc.dart';
 import '../../logic/categories/category_event.dart';
-import '../../logic/orders/order_bloc.dart';
-import '../../logic/orders/order_event.dart';
+import '../../logic/collections/collection_bloc.dart';
+import '../../logic/collections/collection_event.dart';
 import '../../logic/banners/banner_bloc.dart';
 import '../../logic/banners/banner_event.dart';
-import '../../logic/coupons/coupon_bloc.dart';
-import '../../logic/coupons/coupon_event.dart';
 
 class TopBar extends StatelessWidget {
   final String currentPath;
@@ -61,19 +57,9 @@ class TopBar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final isMobile = ResponsiveLayout.isMobile(context);
 
-    String sectionTitle = 'Dashboard Overview';
+    String sectionTitle = 'Products & Catalog Operations';
     if (currentPath == RoutePaths.products) {
-      sectionTitle = 'Products & Inventory';
-    } else if (currentPath == RoutePaths.categories) {
-      sectionTitle = 'Categories & Subcategories';
-    } else if (currentPath == RoutePaths.banners) {
-      sectionTitle = 'Banners & Marketing Assets';
-    } else if (currentPath == RoutePaths.coupons) {
-      sectionTitle = 'Coupons & Discounts';
-    } else if (currentPath == RoutePaths.orders) {
-      sectionTitle = 'Customer Orders';
-    } else if (currentPath == RoutePaths.settings) {
-      sectionTitle = 'Theme & Panel Settings';
+      sectionTitle = 'Products & Catalog Operations';
     }
 
     return BlocBuilder<ThemeBloc, ThemeState>(
@@ -176,18 +162,16 @@ class TopBar extends StatelessWidget {
                   // Refresh Data Button
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, size: 20),
-                    tooltip: 'Sync Live Data across BLoCs',
+                    tooltip: 'Sync Live Catalog Data',
                     onPressed: () {
-                      context.read<DashboardBloc>().add(const LoadDashboardData());
                       context.read<ProductBloc>().add(const LoadProducts());
                       context.read<CategoryBloc>().add(const LoadCategories());
-                      context.read<OrderBloc>().add(const LoadOrders());
+                      context.read<CollectionBloc>().add(const LoadCollections());
                       context.read<BannerBloc>().add(const LoadBanners());
-                      context.read<CouponBloc>().add(const LoadCoupons());
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Syncing all modules with Bhandar Cloud Run...'),
+                          content: Text('Syncing Catalog modules with Bhandar Cloud Run...'),
                           duration: Duration(seconds: 1),
                         ),
                       );
@@ -236,7 +220,7 @@ class TopBar extends StatelessWidget {
                           children: [
                             Text(displayName, style: const TextStyle(fontWeight: FontWeight.w700)),
                             Text(
-                              user?.email ?? 'admin@krishibhandar.in',
+                              user?.email ?? 'admin@krishibhandar.com',
                               style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
                             ),
                             const SizedBox(height: 4),

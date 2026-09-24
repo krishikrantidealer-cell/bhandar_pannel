@@ -7,10 +7,10 @@ import '../../logic/theme/theme_event.dart';
 import '../../logic/theme/theme_state.dart';
 import '../../logic/products/product_bloc.dart';
 import '../../logic/products/product_state.dart';
-import '../../logic/categories/category_bloc.dart';
-import '../../logic/categories/category_state.dart';
-import '../../logic/orders/order_bloc.dart';
-import '../../logic/orders/order_state.dart';
+// import '../../logic/categories/category_bloc.dart';
+// import '../../logic/categories/category_state.dart';
+// import '../../logic/orders/order_bloc.dart';
+// import '../../logic/orders/order_state.dart';
 
 class Sidebar extends StatelessWidget {
   final String currentPath;
@@ -127,15 +127,16 @@ class Sidebar extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   children: [
-                    _buildNavItem(
-                      context,
-                      path: RoutePaths.dashboard,
-                      title: 'Dashboard',
-                      icon: Icons.dashboard_rounded,
-                      isSelected: currentPath == RoutePaths.dashboard,
-                      isCollapsed: isCollapsed,
-                      primaryColor: themeState.currentPalette.primary,
-                    ),
+                    // Dashboard
+                    // _buildNavItem(
+                    //   context,
+                    //   path: RoutePaths.dashboard,
+                    //   title: 'Dashboard',
+                    //   icon: Icons.dashboard_rounded,
+                    //   isSelected: currentPath == RoutePaths.dashboard,
+                    //   isCollapsed: isCollapsed,
+                    //   primaryColor: themeState.currentPalette.primary,
+                    // ),
                     BlocBuilder<ProductBloc, ProductState>(
                       builder: (context, prodState) {
                         return _buildNavItem(
@@ -150,76 +151,81 @@ class Sidebar extends StatelessWidget {
                         );
                       },
                     ),
-                    BlocBuilder<CategoryBloc, CategoryState>(
-                      builder: (context, catState) {
-                        return _buildNavItem(
-                          context,
-                          path: RoutePaths.categories,
-                          title: 'Categories',
-                          icon: Icons.category_rounded,
-                          isSelected: currentPath == RoutePaths.categories,
-                          badgeText: '${catState.categories.length}',
-                          isCollapsed: isCollapsed,
-                          primaryColor: themeState.currentPalette.primary,
-                        );
-                      },
-                    ),
-                    _buildNavItem(
-                      context,
-                      path: RoutePaths.banners,
-                      title: 'Banners',
-                      icon: Icons.view_carousel_rounded,
-                      isSelected: currentPath == RoutePaths.banners,
-                      isCollapsed: isCollapsed,
-                      primaryColor: themeState.currentPalette.primary,
-                    ),
-                    _buildNavItem(
-                      context,
-                      path: RoutePaths.coupons,
-                      title: 'Coupons',
-                      icon: Icons.local_offer_rounded,
-                      isSelected: currentPath == RoutePaths.coupons,
-                      isCollapsed: isCollapsed,
-                      primaryColor: themeState.currentPalette.primary,
-                    ),
-                    BlocBuilder<OrderBloc, OrderState>(
-                      builder: (context, ordState) {
-                        return _buildNavItem(
-                          context,
-                          path: RoutePaths.orders,
-                          title: 'Orders',
-                          icon: Icons.shopping_bag_rounded,
-                          isSelected: currentPath == RoutePaths.orders,
-                          badgeText: '${ordState.orders.length}',
-                          badgeColor: const Color(0xFFEF4444),
-                          isCollapsed: isCollapsed,
-                          primaryColor: themeState.currentPalette.primary,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    if (!isCollapsed)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        child: Text(
-                          'PREFERENCES & SYSTEM',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.0,
-                            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                          ),
-                        ),
-                      ),
-                    _buildNavItem(
-                      context,
-                      path: RoutePaths.settings,
-                      title: 'Theme & Settings',
-                      icon: Icons.tune_rounded,
-                      isSelected: currentPath == RoutePaths.settings,
-                      isCollapsed: isCollapsed,
-                      primaryColor: themeState.currentPalette.primary,
-                    ),
+                    // Categories
+                    // BlocBuilder<CategoryBloc, CategoryState>(
+                    //   builder: (context, catState) {
+                    //     return _buildNavItem(
+                    //       context,
+                    //       path: RoutePaths.categories,
+                    //       title: 'Categories',
+                    //       icon: Icons.category_rounded,
+                    //       isSelected: currentPath == RoutePaths.categories,
+                    //       badgeText: '${catState.categories.length}',
+                    //       isCollapsed: isCollapsed,
+                    //       primaryColor: themeState.currentPalette.primary,
+                    //     );
+                    //   },
+                    // ),
+                    // Banners
+                    // _buildNavItem(
+                    //   context,
+                    //   path: RoutePaths.banners,
+                    //   title: 'Banners',
+                    //   icon: Icons.view_carousel_rounded,
+                    //   isSelected: currentPath == RoutePaths.banners,
+                    //   isCollapsed: isCollapsed,
+                    //   primaryColor: themeState.currentPalette.primary,
+                    // ),
+                    // Coupons
+                    // _buildNavItem(
+                    //   context,
+                    //   path: RoutePaths.coupons,
+                    //   title: 'Coupons',
+                    //   icon: Icons.local_offer_rounded,
+                    //   isSelected: currentPath == RoutePaths.coupons,
+                    //   isCollapsed: isCollapsed,
+                    //   primaryColor: themeState.currentPalette.primary,
+                    // ),
+                    // Orders
+                    // BlocBuilder<OrderBloc, OrderState>(
+                    //   builder: (context, ordState) {
+                    //     return _buildNavItem(
+                    //       context,
+                    //       path: RoutePaths.orders,
+                    //       title: 'Orders',
+                    //       icon: Icons.shopping_bag_rounded,
+                    //       isSelected: currentPath == RoutePaths.orders,
+                    //       badgeText: '${ordState.orders.length}',
+                    //       badgeColor: const Color(0xFFEF4444),
+                    //       isCollapsed: isCollapsed,
+                    //       primaryColor: themeState.currentPalette.primary,
+                    //     );
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    // if (!isCollapsed)
+                    //   Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    //     child: Text(
+                    //       'PREFERENCES & SYSTEM',
+                    //       style: TextStyle(
+                    //         fontSize: 10,
+                    //         fontWeight: FontWeight.w700,
+                    //         letterSpacing: 1.0,
+                    //         color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // Theme & Settings
+                    // _buildNavItem(
+                    //   context,
+                    //   path: RoutePaths.settings,
+                    //   title: 'Theme & Settings',
+                    //   icon: Icons.tune_rounded,
+                    //   isSelected: currentPath == RoutePaths.settings,
+                    //   isCollapsed: isCollapsed,
+                    //   primaryColor: themeState.currentPalette.primary,
+                    // ),
                   ],
                 ),
               ),

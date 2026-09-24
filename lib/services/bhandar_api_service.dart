@@ -1,5 +1,7 @@
 import '../core/network/api_client.dart';
+import '../data/models/user_model.dart';
 import '../models/category_model.dart';
+import '../models/collection_model.dart';
 import '../models/product_model.dart';
 import '../models/banner_model.dart';
 import '../models/coupon_model.dart';
@@ -12,9 +14,35 @@ class BhandarApiService {
 
   BhandarApiService({required this.apiClient});
 
+  void setAuthToken(String? token) {
+    apiClient.authToken = token;
+  }
+
   void updateBaseUrl(String newUrl, {String? token}) {
     apiClient.baseUrl = newUrl;
     apiClient.authToken = token;
+  }
+
+  // Authentication
+  Future<UserModel> login({required String identifier, required String password, bool rememberMe = true}) async {
+    final response = await apiClient.post('/api/auth/login', body: {
+      'phone': identifier,
+      'email': identifier,
+      'identifier': identifier,
+      'password': password,
+      'rememberMe': rememberMe,
+    });
+
+    if (response is Map) {
+      if (response['error'] != null || response['success'] == false) {
+        throw ApiException(response['message'] ?? response['error'] ?? 'Invalid credentials');
+      }
+      final userData = response['user'] ?? response['customer'] ?? response['data'] ?? response;
+      final token = response['token'] ?? response['accessToken'] ?? 'jwt_admin_${DateTime.now().millisecondsSinceEpoch}';
+      return UserModel.fromJson(Map<String, dynamic>.from(userData), token: token);
+    }
+
+    throw ApiException('Invalid server response format.');
   }
 
   // Categories
@@ -25,13 +53,19 @@ class BhandarApiService {
         return response
             .map((item) => CategoryModel.fromJson(Map<String, dynamic>.from(item)))
             .toList();
-      } else if (response is Map && response['categories'] is List) {
-        return (response['categories'] as List)
-            .map((item) => CategoryModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
+      } else if (response is Map) {
+        if (response['categories'] is List) {
+          return (response['categories'] as List)
+              .map((item) => CategoryModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        } else if (response['data'] is List) {
+          return (response['data'] as List)
+              .map((item) => CategoryModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        }
       }
       return MockDataService.getCategories();
-    } catch (e) {
+    } catch (_) {
       return MockDataService.getCategories();
     }
   }
@@ -40,7 +74,8 @@ class BhandarApiService {
     try {
       final response = await apiClient.post('/api/categories', body: data);
       if (response is Map) {
-        return CategoryModel.fromJson(Map<String, dynamic>.from(response));
+        final resData = response['category'] ?? response['data'] ?? response;
+        return CategoryModel.fromJson(Map<String, dynamic>.from(resData));
       }
     } catch (_) {}
     return CategoryModel.fromJson(data);
@@ -50,7 +85,8 @@ class BhandarApiService {
     try {
       final response = await apiClient.put('/api/categories/$id', body: data);
       if (response is Map) {
-        return CategoryModel.fromJson(Map<String, dynamic>.from(response));
+        final resData = response['category'] ?? response['data'] ?? response;
+        return CategoryModel.fromJson(Map<String, dynamic>.from(resData));
       }
     } catch (_) {}
     return CategoryModel.fromJson(data);
@@ -59,6 +95,59 @@ class BhandarApiService {
   Future<void> deleteCategory(String id) async {
     try {
       await apiClient.delete('/api/categories/$id');
+    } catch (_) {}
+  }
+
+  // Collections
+  Future<List<CollectionModel>> getCollections() async {
+    try {
+      final response = await apiClient.get('/api/collections');
+      if (response is List) {
+        return response
+            .map((item) => CollectionModel.fromJson(Map<String, dynamic>.from(item)))
+            .toList();
+      } else if (response is Map) {
+        if (response['collections'] is List) {
+          return (response['collections'] as List)
+              .map((item) => CollectionModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        } else if (response['data'] is List) {
+          return (response['data'] as List)
+              .map((item) => CollectionModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        }
+      }
+      return MockDataService.getCollections();
+    } catch (_) {
+      return MockDataService.getCollections();
+    }
+  }
+
+  Future<CollectionModel> createCollection(Map<String, dynamic> data) async {
+    try {
+      final response = await apiClient.post('/api/collections', body: data);
+      if (response is Map) {
+        final resData = response['collection'] ?? response['data'] ?? response;
+        return CollectionModel.fromJson(Map<String, dynamic>.from(resData));
+      }
+    } catch (_) {}
+    return CollectionModel.fromJson(data);
+  }
+
+  Future<CollectionModel> updateCollection(String id, Map<String, dynamic> data) async {
+    try {
+      final response = await apiClient.put('/api/collections/$id', body: data);
+      if (response is Map) {
+        final resData = response['collection'] ?? response['data'] ?? response;
+        return CollectionModel.fromJson(Map<String, dynamic>.from(resData));
+      }
+    } catch (_) {}
+    return CollectionModel.fromJson(data);
+  }
+
+  Future<void> deleteCollection(String id) async {
+    try {
+      await apiClient.delete('/api/collections/$id');
     } catch (_) {}
   }
 
@@ -76,13 +165,19 @@ class BhandarApiService {
         return response
             .map((item) => ProductModel.fromJson(Map<String, dynamic>.from(item)))
             .toList();
-      } else if (response is Map && response['products'] is List) {
-        return (response['products'] as List)
-            .map((item) => ProductModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
+      } else if (response is Map) {
+        if (response['products'] is List) {
+          return (response['products'] as List)
+              .map((item) => ProductModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        } else if (response['data'] is List) {
+          return (response['data'] as List)
+              .map((item) => ProductModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        }
       }
       return MockDataService.getProducts();
-    } catch (e) {
+    } catch (_) {
       return MockDataService.getProducts();
     }
   }
@@ -91,7 +186,8 @@ class BhandarApiService {
     try {
       final response = await apiClient.post('/api/products', body: data);
       if (response is Map) {
-        return ProductModel.fromJson(Map<String, dynamic>.from(response));
+        final resData = response['product'] ?? response['data'] ?? response;
+        return ProductModel.fromJson(Map<String, dynamic>.from(resData));
       }
     } catch (_) {}
     return ProductModel.fromJson(data);
@@ -101,7 +197,8 @@ class BhandarApiService {
     try {
       final response = await apiClient.put('/api/products/$id', body: data);
       if (response is Map) {
-        return ProductModel.fromJson(Map<String, dynamic>.from(response));
+        final resData = response['product'] ?? response['data'] ?? response;
+        return ProductModel.fromJson(Map<String, dynamic>.from(resData));
       }
     } catch (_) {}
     return ProductModel.fromJson(data);
@@ -121,15 +218,49 @@ class BhandarApiService {
         return response
             .map((item) => BannerModel.fromJson(Map<String, dynamic>.from(item)))
             .toList();
-      } else if (response is Map && response['banners'] is List) {
-        return (response['banners'] as List)
-            .map((item) => BannerModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
+      } else if (response is Map) {
+        if (response['banners'] is List) {
+          return (response['banners'] as List)
+              .map((item) => BannerModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        } else if (response['data'] is List) {
+          return (response['data'] as List)
+              .map((item) => BannerModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        }
       }
       return MockDataService.getBanners();
-    } catch (e) {
+    } catch (_) {
       return MockDataService.getBanners();
     }
+  }
+
+  Future<BannerModel> createBanner(Map<String, dynamic> data) async {
+    try {
+      final response = await apiClient.post('/api/banners', body: data);
+      if (response is Map) {
+        final resData = response['banner'] ?? response['data'] ?? response;
+        return BannerModel.fromJson(Map<String, dynamic>.from(resData));
+      }
+    } catch (_) {}
+    return BannerModel.fromJson(data);
+  }
+
+  Future<BannerModel> updateBanner(String id, Map<String, dynamic> data) async {
+    try {
+      final response = await apiClient.put('/api/banners/$id', body: data);
+      if (response is Map) {
+        final resData = response['banner'] ?? response['data'] ?? response;
+        return BannerModel.fromJson(Map<String, dynamic>.from(resData));
+      }
+    } catch (_) {}
+    return BannerModel.fromJson(data);
+  }
+
+  Future<void> deleteBanner(String id) async {
+    try {
+      await apiClient.delete('/api/banners/$id');
+    } catch (_) {}
   }
 
   // Coupons
@@ -146,7 +277,7 @@ class BhandarApiService {
             .toList();
       }
       return MockDataService.getCoupons();
-    } catch (e) {
+    } catch (_) {
       return MockDataService.getCoupons();
     }
   }
@@ -165,13 +296,19 @@ class BhandarApiService {
             .toList();
       }
       return MockDataService.getOrders();
-    } catch (e) {
+    } catch (_) {
       return MockDataService.getOrders();
     }
   }
 
   // Dashboard Stats
   Future<DashboardStats> getDashboardStats() async {
+    try {
+      final response = await apiClient.get('/api/dashboard/stats');
+      if (response is Map) {
+        return DashboardStats.fromJson(Map<String, dynamic>.from(response['data'] ?? response));
+      }
+    } catch (_) {}
     return MockDataService.getDashboardStats();
   }
 }

@@ -5,13 +5,13 @@ import 'route_paths.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../presentation/widgets/app_shell.dart';
 import '../../presentation/views/login_view.dart';
-import '../../presentation/views/dashboard_view.dart';
+// import '../../presentation/views/dashboard_view.dart';
 import '../../presentation/views/products_view.dart';
-import '../../presentation/views/categories_view.dart';
-import '../../presentation/views/banners_view.dart';
-import '../../presentation/views/coupons_view.dart';
-import '../../presentation/views/orders_view.dart';
-import '../../presentation/views/customization_view.dart';
+// import '../../presentation/views/categories_view.dart';
+// import '../../presentation/views/banners_view.dart';
+// import '../../presentation/views/coupons_view.dart';
+// import '../../presentation/views/orders_view.dart';
+// import '../../presentation/views/customization_view.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
@@ -46,8 +46,8 @@ class AppRouter {
           return RoutePaths.login;
         }
 
-        if (isAuthenticated && isLoggingIn) {
-          return RoutePaths.dashboard;
+        if (isAuthenticated && (isLoggingIn || state.matchedLocation == RoutePaths.dashboard || state.matchedLocation == '/')) {
+          return RoutePaths.products;
         }
 
         return null;
@@ -68,48 +68,48 @@ class AppRouter {
             );
           },
           routes: [
-            GoRoute(
-              path: RoutePaths.dashboard,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: DashboardView(),
-              ),
-            ),
+            // GoRoute(
+            //   path: RoutePaths.dashboard,
+            //   pageBuilder: (context, state) => const NoTransitionPage(
+            //     child: DashboardView(),
+            //   ),
+            // ),
             GoRoute(
               path: RoutePaths.products,
               pageBuilder: (context, state) => const NoTransitionPage(
                 child: ProductsView(),
               ),
             ),
-            GoRoute(
-              path: RoutePaths.categories,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: CategoriesView(),
-              ),
-            ),
-            GoRoute(
-              path: RoutePaths.banners,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: BannersView(),
-              ),
-            ),
-            GoRoute(
-              path: RoutePaths.coupons,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: CouponsView(),
-              ),
-            ),
-            GoRoute(
-              path: RoutePaths.orders,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: OrdersView(),
-              ),
-            ),
-            GoRoute(
-              path: RoutePaths.settings,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: CustomizationView(),
-              ),
-            ),
+            // GoRoute(
+            //   path: RoutePaths.categories,
+            //   pageBuilder: (context, state) => const NoTransitionPage(
+            //     child: CategoriesView(),
+            //   ),
+            // ),
+            // GoRoute(
+            //   path: RoutePaths.banners,
+            //   pageBuilder: (context, state) => const NoTransitionPage(
+            //     child: BannersView(),
+            //   ),
+            // ),
+            // GoRoute(
+            //   path: RoutePaths.coupons,
+            //   pageBuilder: (context, state) => const NoTransitionPage(
+            //     child: CouponsView(),
+            //   ),
+            // ),
+            // GoRoute(
+            //   path: RoutePaths.orders,
+            //   pageBuilder: (context, state) => const NoTransitionPage(
+            //     child: OrdersView(),
+            //   ),
+            // ),
+            // GoRoute(
+            //   path: RoutePaths.settings,
+            //   pageBuilder: (context, state) => const NoTransitionPage(
+            //     child: CustomizationView(),
+            //   ),
+            // ),
           ],
         ),
       ],

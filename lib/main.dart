@@ -5,13 +5,14 @@ import 'core/config/app_config.dart';
 import 'core/network/api_client.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
-import 'data/datasources/bhandar_remote_datasource.dart';
 import 'data/repositories/bhandar_repository.dart';
+import 'services/bhandar_api_service.dart';
 import 'logic/auth/auth_bloc.dart';
 import 'logic/theme/theme_bloc.dart';
 import 'logic/theme/theme_state.dart';
 import 'logic/products/product_bloc.dart';
 import 'logic/categories/category_bloc.dart';
+import 'logic/collections/collection_bloc.dart';
 import 'logic/orders/order_bloc.dart';
 import 'logic/banners/banner_bloc.dart';
 import 'logic/coupons/coupon_bloc.dart';
@@ -21,8 +22,8 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   final apiClient = ApiClient(baseUrl: AppConfig.defaultApiBaseUrl);
-  final remoteDataSource = BhandarRemoteDataSourceImpl(apiClient: apiClient);
-  final repository = BhandarRepository(remoteDataSource: remoteDataSource);
+  final apiService = BhandarApiService(apiClient: apiClient);
+  final repository = BhandarRepository(apiService: apiService);
 
   final authBloc = AuthBloc(repository: repository);
   final router = AppRouter.createRouter(authBloc);
@@ -38,6 +39,7 @@ void main() {
           BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
           BlocProvider<ProductBloc>(create: (_) => ProductBloc(repository: repository)),
           BlocProvider<CategoryBloc>(create: (_) => CategoryBloc(repository: repository)),
+          BlocProvider<CollectionBloc>(create: (_) => CollectionBloc(repository: repository)),
           BlocProvider<OrderBloc>(create: (_) => OrderBloc(repository: repository)),
           BlocProvider<BannerBloc>(create: (_) => BannerBloc(repository: repository)),
           BlocProvider<CouponBloc>(create: (_) => CouponBloc(repository: repository)),

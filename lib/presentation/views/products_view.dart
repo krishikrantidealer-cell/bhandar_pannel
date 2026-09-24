@@ -6,25 +6,50 @@ import '../../logic/products/product_event.dart';
 import '../../logic/products/product_state.dart';
 import '../../logic/categories/category_bloc.dart';
 import '../../logic/categories/category_state.dart';
+import '../../logic/collections/collection_bloc.dart';
+import '../../logic/collections/collection_state.dart';
+import '../../logic/banners/banner_bloc.dart';
+import '../../logic/banners/banner_state.dart';
 import '../../logic/theme/theme_bloc.dart';
 import '../../logic/theme/theme_state.dart';
 import '../../models/product_model.dart';
 import '../widgets/custom_table.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/image_preview.dart';
+import 'categories_view.dart';
+import 'collections_view.dart';
+import 'banners_view.dart';
 
 class ProductsView extends StatefulWidget {
-  const ProductsView({super.key});
+  final int initialTabIndex;
+  const ProductsView({super.key, this.initialTabIndex = 0});
 
   @override
   State<ProductsView> createState() => _ProductsViewState();
 }
 
-class _ProductsViewState extends State<ProductsView> {
+class _ProductsViewState extends State<ProductsView> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, 3),
+    );
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -34,13 +59,17 @@ class _ProductsViewState extends State<ProductsView> {
     final titleController = TextEditingController(text: existingProduct?.title ?? '');
     final descController = TextEditingController(text: existingProduct?.description ?? '');
     final priceController = TextEditingController(
-        text: existingProduct != null ? existingProduct.price.toStringAsFixed(0) : '');
+      text: existingProduct != null ? existingProduct.price.toStringAsFixed(0) : '',
+    );
     final mrpController = TextEditingController(
-        text: existingProduct != null ? existingProduct.mrp.toStringAsFixed(0) : '');
+      text: existingProduct != null ? existingProduct.mrp.toStringAsFixed(0) : '',
+    );
     final stockController = TextEditingController(
-        text: existingProduct != null ? existingProduct.stock.toString() : '50');
+      text: existingProduct != null ? existingProduct.stock.toString() : '50',
+    );
     final imageController = TextEditingController(
-        text: existingProduct?.images.isNotEmpty == true ? existingProduct!.images.first : '');
+      text: existingProduct?.images.isNotEmpty == true ? existingProduct!.images.first : '',
+    );
 
     String selectedCategory = existingProduct?.category ??
         (catState.categories.isNotEmpty ? catState.categories.first.name : 'Insecticides');
@@ -214,6 +243,275 @@ class _ProductsViewState extends State<ProductsView> {
     );
   }
 
+  Widget _buildProductTab(
+    BuildContext context,
+    ThemeState themeState,
+    bool isDark,
+    ProductState productState,
+    CategoryState categoryState,
+  ) {
+    final theme = Theme.of(context);
+    final products = productState.filteredProducts;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Action & Filter Bar
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (val) => context.read<ProductBloc>().add(SearchProducts(val)),
+                      decoration: InputDecoration(
+                        hintText: 'Search products by title or active ingredient...',
+                        prefixIcon: const Icon(Icons.search_rounded),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  context.read<ProductBloc>().add(const SearchProducts(''));
+                                },
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String?>(
+                      initialValue: productState.selectedCategory,
+                      decoration: const InputDecoration(
+                        labelText: 'Filter by Category',
+                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                      dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      items: [
+                        const DropdownMenuItem(value: null, child: Text('All Categories')),
+                        ...categoryState.categories.map((c) {
+                          return DropdownMenuItem(value: c.name, child: Text(c.name));
+                        }),
+                      ],
+                      onChanged: (val) =>
+                          context.read<ProductBloc>().add(FilterProductsByCategory(val)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddEditProductModal(),
+                    icon: const Icon(Icons.add_rounded, size: 20),
+                    label: const Text('Add Product'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Products Data Table
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Catalog Inventory (${products.length} Items)',
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      if (productState.selectedCategory != null)
+                        Chip(
+                          label: Text('Filter: ${productState.selectedCategory}'),
+                          onDeleted: () =>
+                              context.read<ProductBloc>().add(const FilterProductsByCategory(null)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTable(
+                    minWidth: 850,
+                    columns: const [
+                      TableColumnDef(label: 'Image', width: 64),
+                      TableColumnDef(label: 'Product Title', flex: 3),
+                      TableColumnDef(label: 'Category', flex: 2),
+                      TableColumnDef(label: 'Price (MRP)', flex: 2),
+                      TableColumnDef(label: 'Stock Status', flex: 2),
+                      TableColumnDef(label: 'Actions', width: 110, alignment: Alignment.centerRight),
+                    ],
+                    rows: products.map((prod) {
+                      final hasDiscount = prod.discountPercent > 0;
+                      final isLowStock = prod.stock < 25;
+
+                      return [
+                        // Image
+                        ImagePreview(
+                          url: prod.images.isNotEmpty ? prod.images.first : null,
+                          width: 44,
+                          height: 44,
+                          borderRadius: themeState.borderRadius * 0.6,
+                        ),
+
+                        // Title
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              prod.title,
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (prod.subCategory != null)
+                              Text(
+                                prod.subCategory!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        // Category
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: themeState.currentPalette.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            prod.category,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: themeState.currentPalette.primary,
+                            ),
+                          ),
+                        ),
+
+                        // Price
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              AppFormatters.formatCurrency(prod.price),
+                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                            ),
+                            if (hasDiscount)
+                              Text(
+                                AppFormatters.formatCurrency(prod.mrp),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        // Stock
+                        isLowStock
+                            ? StatusBadge.warning('${prod.stock} left (Low)')
+                            : StatusBadge.success('${prod.stock} in stock'),
+
+                        // Actions
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              tooltip: 'Edit Product',
+                              onPressed: () => _showAddEditProductModal(existingProduct: prod),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded,
+                                  size: 18, color: Color(0xFFEF4444)),
+                              tooltip: 'Delete Product',
+                              onPressed: () => _confirmDeleteProduct(prod),
+                            ),
+                          ],
+                        ),
+                      ];
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabItem({
+    required IconData icon,
+    required String title,
+    required int count,
+    required bool isSelected,
+    required Color primaryColor,
+    required bool isDark,
+  }) {
+    return Tab(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? primaryColor : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                fontSize: 13.5,
+                color: isSelected
+                    ? primaryColor
+                    : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? primaryColor.withValues(alpha: 0.15)
+                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isSelected
+                      ? primaryColor
+                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -221,226 +519,116 @@ class _ProductsViewState extends State<ProductsView> {
 
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
+        final palette = themeState.currentPalette;
+
         return BlocBuilder<CategoryBloc, CategoryState>(
           builder: (context, categoryState) {
             return BlocBuilder<ProductBloc, ProductState>(
               builder: (context, productState) {
-                final products = productState.filteredProducts;
+                return BlocBuilder<CollectionBloc, CollectionState>(
+                  builder: (context, collectionState) {
+                    return BlocBuilder<BannerBloc, BannerState>(
+                      builder: (context, bannerState) {
+                        final productCount = productState.allProducts.length;
+                        final categoryCount = categoryState.categories.length;
+                        final collectionCount = collectionState.collections.length;
+                        final bannerCount = bannerState.banners.length;
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Action Bar
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
+                        return Scaffold(
+                          backgroundColor: Colors.transparent,
+                          body: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(
-                                flex: 2,
-                                child: TextField(
-                                  controller: _searchController,
-                                  onChanged: (val) =>
-                                      context.read<ProductBloc>().add(SearchProducts(val)),
-                                  decoration: InputDecoration(
-                                    hintText: 'Search products by title or active ingredient...',
-                                    prefixIcon: const Icon(Icons.search_rounded),
-                                    suffixIcon: _searchController.text.isNotEmpty
-                                        ? IconButton(
-                                            icon: const Icon(Icons.clear_rounded),
-                                            onPressed: () {
-                                              _searchController.clear();
-                                              context.read<ProductBloc>().add(const SearchProducts(''));
-                                            },
-                                          )
-                                        : null,
+                              // Top Sub-Navigation Tab Bar
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                      width: 1,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: DropdownButtonFormField<String?>(
-                                  initialValue: productState.selectedCategory,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Filter by Category',
-                                    contentPadding:
-                                        EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                  ),
-                                  dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                                  items: [
-                                    const DropdownMenuItem(value: null, child: Text('All Categories')),
-                                    ...categoryState.categories.map((c) {
-                                      return DropdownMenuItem(value: c.name, child: Text(c.name));
-                                    }),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                child: TabBar(
+                                  controller: _tabController,
+                                  isScrollable: true,
+                                  indicatorColor: palette.primary,
+                                  indicatorWeight: 3,
+                                  indicatorSize: TabBarIndicatorSize.label,
+                                  dividerColor: Colors.transparent,
+                                  splashFactory: NoSplash.splashFactory,
+                                  overlayColor: WidgetStateProperty.all(Colors.transparent),
+                                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                                  tabs: [
+                                    _buildTabItem(
+                                      icon: Icons.inventory_2_rounded,
+                                      title: 'Products',
+                                      count: productCount,
+                                      isSelected: _tabController.index == 0,
+                                      primaryColor: palette.primary,
+                                      isDark: isDark,
+                                    ),
+                                    _buildTabItem(
+                                      icon: Icons.category_rounded,
+                                      title: 'Categories',
+                                      count: categoryCount,
+                                      isSelected: _tabController.index == 1,
+                                      primaryColor: palette.primary,
+                                      isDark: isDark,
+                                    ),
+                                    _buildTabItem(
+                                      icon: Icons.collections_bookmark_rounded,
+                                      title: 'Collection',
+                                      count: collectionCount,
+                                      isSelected: _tabController.index == 2,
+                                      primaryColor: palette.primary,
+                                      isDark: isDark,
+                                    ),
+                                    _buildTabItem(
+                                      icon: Icons.view_carousel_rounded,
+                                      title: 'Banners',
+                                      count: bannerCount,
+                                      isSelected: _tabController.index == 3,
+                                      primaryColor: palette.primary,
+                                      isDark: isDark,
+                                    ),
                                   ],
-                                  onChanged: (val) => context
-                                      .read<ProductBloc>()
-                                      .add(FilterProductsByCategory(val)),
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              ElevatedButton.icon(
-                                onPressed: () => _showAddEditProductModal(),
-                                icon: const Icon(Icons.add_rounded, size: 20),
-                                label: const Text('Add Product'),
+
+                              // Tab Views Content
+                              Expanded(
+                                child: TabBarView(
+                                  controller: _tabController,
+                                  children: [
+                                    // 1. Products Tab
+                                    _buildProductTab(
+                                      context,
+                                      themeState,
+                                      isDark,
+                                      productState,
+                                      categoryState,
+                                    ),
+
+                                    // 2. Categories Tab
+                                    const CategoriesView(isEmbedded: true),
+
+                                    // 3. Collection Tab
+                                    const CollectionsView(isEmbedded: true),
+
+                                    // 4. Banners Tab
+                                    const BannersView(isEmbedded: true),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Products Data Table
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Catalog Inventory (${products.length} Items)',
-                                    style: theme.textTheme.titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w700),
-                                  ),
-                                  if (productState.selectedCategory != null)
-                                    Chip(
-                                      label: Text('Filter: ${productState.selectedCategory}'),
-                                      onDeleted: () => context
-                                          .read<ProductBloc>()
-                                          .add(const FilterProductsByCategory(null)),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              CustomTable(
-                                minWidth: 850,
-                                columns: const [
-                                  TableColumnDef(label: 'Image', width: 64),
-                                  TableColumnDef(label: 'Product Title', flex: 3),
-                                  TableColumnDef(label: 'Category', flex: 2),
-                                  TableColumnDef(label: 'Price (MRP)', flex: 2),
-                                  TableColumnDef(label: 'Stock Status', flex: 2),
-                                  TableColumnDef(
-                                      label: 'Actions', width: 110, alignment: Alignment.centerRight),
-                                ],
-                                rows: products.map((prod) {
-                                  final hasDiscount = prod.discountPercent > 0;
-                                  final isLowStock = prod.stock < 25;
-
-                                  return [
-                                    // Image
-                                    ImagePreview(
-                                      url: prod.images.isNotEmpty ? prod.images.first : null,
-                                      width: 44,
-                                      height: 44,
-                                      borderRadius: themeState.borderRadius * 0.6,
-                                    ),
-
-                                    // Title
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          prod.title,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w600, fontSize: 13.5),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        if (prod.subCategory != null)
-                                          Text(
-                                            prod.subCategory!,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: isDark
-                                                  ? const Color(0xFF94A3B8)
-                                                  : const Color(0xFF64748B),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-
-                                    // Category
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            themeState.currentPalette.primary.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        prod.category,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: themeState.currentPalette.primary,
-                                        ),
-                                      ),
-                                    ),
-
-                                    // Price
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          AppFormatters.formatCurrency(prod.price),
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w700, fontSize: 13.5),
-                                        ),
-                                        if (hasDiscount)
-                                          Text(
-                                            AppFormatters.formatCurrency(prod.mrp),
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: isDark
-                                                  ? const Color(0xFF64748B)
-                                                  : const Color(0xFF94A3B8),
-                                              decoration: TextDecoration.lineThrough,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-
-                                    // Stock
-                                    isLowStock
-                                        ? StatusBadge.warning('${prod.stock} left (Low)')
-                                        : StatusBadge.success('${prod.stock} in stock'),
-
-                                    // Actions
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.edit_outlined, size: 18),
-                                          tooltip: 'Edit Product',
-                                          onPressed: () =>
-                                              _showAddEditProductModal(existingProduct: prod),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete_outline_rounded,
-                                              size: 18, color: Color(0xFFEF4444)),
-                                          tooltip: 'Delete Product',
-                                          onPressed: () => _confirmDeleteProduct(prod),
-                                        ),
-                                      ],
-                                    ),
-                                  ];
-                                }).toList(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                        );
+                      },
+                    );
+                  },
                 );
               },
             );

@@ -39,7 +39,7 @@ class UserModel extends Equatable {
       id: json['_id'] ?? json['id']?.toString() ?? '',
       name: json['name'] ?? json['fullName'] ?? 'Bhandar Admin',
       phone: json['phone'] ?? json['phoneNumber'] ?? '+91 9876543210',
-      email: json['email'] ?? 'admin@krishibhandar.in',
+      email: json['email'] ?? 'admin@krishibhandar.com',
       userType: type,
       token: token ?? json['token'],
       avatarUrl: json['avatarUrl'] ?? json['avatar'],
