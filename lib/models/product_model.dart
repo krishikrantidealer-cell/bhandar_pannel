@@ -79,6 +79,8 @@ class ProductModel {
   final String? productType;
   final List<String> tags;
   final List<String> assignedCollections;
+  final List<String> collectionIds;
+  final List<String> subCollectionIds;
   final String brand;
   final String status;
   final bool buy1get1;
@@ -106,6 +108,8 @@ class ProductModel {
     this.productType,
     this.tags = const [],
     this.assignedCollections = const [],
+    this.collectionIds = const [],
+    this.subCollectionIds = const [],
     this.brand = 'Krishi Bhandar',
     this.status = 'active',
     this.buy1get1 = false,
@@ -422,6 +426,26 @@ class ProductModel {
       }
     }
 
+    final List<String> colIdsList = [];
+    final rawColIds = json['collectionIds'] ?? json['collection_ids'] ?? json['collectionId'];
+    if (rawColIds is List) {
+      for (final c in rawColIds) {
+        if (c != null && c.toString().isNotEmpty) colIdsList.add(c.toString());
+      }
+    } else if (rawColIds != null && rawColIds.toString().isNotEmpty) {
+      colIdsList.add(rawColIds.toString());
+    }
+
+    final List<String> subColIdsList = [];
+    final rawSubColIds = json['subCollectionIds'] ?? json['sub_collection_ids'] ?? json['subCollectionId'];
+    if (rawSubColIds is List) {
+      for (final s in rawSubColIds) {
+        if (s != null && s.toString().isNotEmpty) subColIdsList.add(s.toString());
+      }
+    } else if (rawSubColIds != null && rawSubColIds.toString().isNotEmpty) {
+      subColIdsList.add(rawSubColIds.toString());
+    }
+
     String? resolvedSubCat = json['subCategory']?.toString() ??
         json['subcategory']?.toString() ??
         json['subCategoryId']?.toString() ??
@@ -446,6 +470,8 @@ class ProductModel {
       productType: pType,
       tags: tagList,
       assignedCollections: collectionList,
+      collectionIds: colIdsList,
+      subCollectionIds: subColIdsList,
       brand: (json['vendor'] ?? json['brand'] ?? 'Krishi Bhandar').toString(),
       status: productStatus,
       buy1get1: isBogo,
@@ -475,6 +501,8 @@ class ProductModel {
         'productType': productType,
         'tags': tags,
         'assignedCollections': assignedCollections,
+        if (collectionIds.isNotEmpty) 'collectionIds': collectionIds,
+        if (subCollectionIds.isNotEmpty) 'subCollectionIds': subCollectionIds,
         'vendor': brand,
         'brand': brand,
         'status': status,
@@ -500,6 +528,8 @@ class ProductModel {
     String? productType,
     List<String>? tags,
     List<String>? assignedCollections,
+    List<String>? collectionIds,
+    List<String>? subCollectionIds,
     String? brand,
     String? status,
     bool? buy1get1,
@@ -523,6 +553,8 @@ class ProductModel {
       productType: productType ?? this.productType,
       tags: tags ?? this.tags,
       assignedCollections: assignedCollections ?? this.assignedCollections,
+      collectionIds: collectionIds ?? this.collectionIds,
+      subCollectionIds: subCollectionIds ?? this.subCollectionIds,
       brand: brand ?? this.brand,
       status: status ?? this.status,
       buy1get1: buy1get1 ?? this.buy1get1,

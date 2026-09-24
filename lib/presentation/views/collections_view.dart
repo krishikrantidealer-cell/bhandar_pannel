@@ -435,35 +435,97 @@ class _CollectionsViewState extends State<CollectionsView> {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
-                                          if (col.subCollections.isNotEmpty) ...[
-                                            const SizedBox(height: 12),
+                                          const SizedBox(height: 12),
+                                          const Divider(height: 1),
+                                          const SizedBox(height: 10),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Sub-collections (${col.subCollections.length})',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w700,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                              if (col.subCollections.isEmpty)
+                                                InkWell(
+                                                  onTap: () => _showAddEditCollectionModal(existingCollection: col),
+                                                  child: Text(
+                                                    '+ Add',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: themeState.currentPalette.primary,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          if (col.subCollections.isEmpty)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                              decoration: BoxDecoration(
+                                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                'No sub-collections defined. Click edit to configure.',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            )
+                                          else
                                             Wrap(
                                               spacing: 6,
                                               runSpacing: 6,
                                               children: col.subCollections.map((sub) {
+                                                final isSpecial = sub.name.toLowerCase().contains('buy') || sub.name.toLowerCase().contains('crop');
                                                 return Container(
                                                   padding: const EdgeInsets.symmetric(
-                                                      horizontal: 8, vertical: 3),
+                                                      horizontal: 8, vertical: 4),
                                                   decoration: BoxDecoration(
-                                                    color: isDark
-                                                        ? const Color(0xFF334155)
-                                                        : const Color(0xFFF1F5F9),
+                                                    color: isSpecial
+                                                        ? const Color(0xFF8B5CF6).withValues(alpha: 0.12)
+                                                        : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9)),
                                                     borderRadius: BorderRadius.circular(6),
-                                                  ),
-                                                  child: Text(
-                                                    sub.name,
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: isDark
-                                                          ? const Color(0xFFCBD5E1)
-                                                          : const Color(0xFF475569),
+                                                    border: Border.all(
+                                                      color: isSpecial
+                                                          ? const Color(0xFF8B5CF6).withValues(alpha: 0.35)
+                                                          : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                                     ),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        isSpecial ? Icons.auto_awesome_rounded : Icons.eco_rounded,
+                                                        size: 11,
+                                                        color: isSpecial ? const Color(0xFF8B5CF6) : const Color(0xFF10B981),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        sub.name,
+                                                        style: TextStyle(
+                                                          fontSize: 11,
+                                                          fontWeight: FontWeight.w600,
+                                                          color: isSpecial
+                                                              ? const Color(0xFF8B5CF6)
+                                                              : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 );
                                               }).toList(),
                                             ),
-                                          ],
                                         ],
                                       ),
                                     ),
