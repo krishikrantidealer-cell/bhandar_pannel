@@ -209,7 +209,7 @@ class CustomTable extends StatelessWidget {
                             fontSize: 11.5,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.5,
-                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF1E293B),
+                            color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                           ),
                         ),
                       );

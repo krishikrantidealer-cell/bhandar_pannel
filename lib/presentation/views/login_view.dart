@@ -463,7 +463,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                                           prefixIcon: Icon(
                                             Icons.mail_outline_rounded,
                                             size: 18,
-                                            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                           ),
                                           filled: true,
                                           fillColor: isDark ? const Color(0xFF161E2E) : const Color(0xFFF1F5F9),
@@ -528,13 +528,13 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                                           prefixIcon: Icon(
                                             Icons.lock_outline_rounded,
                                             size: 18,
-                                            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                           ),
                                           suffixIcon: IconButton(
                                             icon: Icon(
                                               _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                                               size: 18,
-                                              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                             ),
                                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                           ),

@@ -58,4 +58,7 @@ class BhandarRepository {
   Future<List<OrderModel>> getOrders() => apiService.getOrders();
   Future<OrderModel> updateOrderStatus(String id, String status) => apiService.updateOrderStatus(id, status);
   Future<DashboardStats> getDashboardStats() => apiService.getDashboardStats();
+  Future<String> uploadImage({required List<int> bytes, required String filename, String folder = 'categories'}) =>
+      apiService.uploadImage(bytes: bytes, filename: filename, folder: folder);
 }
+

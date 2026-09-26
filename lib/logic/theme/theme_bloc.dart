@@ -18,7 +18,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   static const String _prefApiUrl = 'bhandar_api_url';
   static const String _prefIsSidebarCollapsed = 'bhandar_sidebar_collapsed';
 
-  ThemeBloc() : super(const ThemeState()) {
+  ThemeBloc({SharedPreferences? prefs}) : super(getInitialState(prefs)) {
     on<LoadThemeSettings>(_onLoadThemeSettings);
     on<ChangeThemeMode>(_onChangeThemeMode);
     on<ToggleDarkMode>(_onToggleDarkMode);
@@ -33,47 +33,48 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     on<ResetThemeDefaults>(_onResetThemeDefaults);
     on<ImportThemeJson>(_onImportThemeJson);
 
-    add(const LoadThemeSettings());
+    if (prefs == null) {
+      add(const LoadThemeSettings());
+    }
   }
 
-  Future<void> _onLoadThemeSettings(LoadThemeSettings event, Emitter<ThemeState> emit) async {
+  static ThemeState getInitialState(SharedPreferences? prefs) {
+    if (prefs == null) return const ThemeState();
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      ThemeMode mode = state.themeMode;
+      ThemeMode mode = ThemeMode.system;
       final modeStr = prefs.getString(_prefThemeMode);
       if (modeStr != null) {
         mode = ThemeMode.values.firstWhere((e) => e.name == modeStr, orElse: () => ThemeMode.system);
       }
 
-      ThemePaletteId pal = state.paletteId;
+      ThemePaletteId pal = ThemePaletteId.agriEmerald;
       final palStr = prefs.getString(_prefPaletteId);
       if (palStr != null) {
         pal = ThemePaletteId.values.firstWhere((e) => e.name == palStr, orElse: () => ThemePaletteId.agriEmerald);
       }
 
-      AppFontFamily font = state.fontFamily;
+      AppFontFamily font = AppFontFamily.inter;
       final fontStr = prefs.getString(_prefFontFamily);
       if (fontStr != null) {
         font = AppFontFamily.values.firstWhere((e) => e.name == fontStr, orElse: () => AppFontFamily.inter);
       }
 
-      AppDensity den = state.density;
+      AppDensity den = AppDensity.standard;
       final denStr = prefs.getString(_prefDensity);
       if (denStr != null) {
         den = AppDensity.values.firstWhere((e) => e.name == denStr, orElse: () => AppDensity.standard);
       }
 
-      double rad = state.borderRadius;
+      double rad = 12.0;
       final radiusVal = prefs.getDouble(_prefBorderRadius);
       if (radiusVal != null) rad = radiusVal;
 
-      String bName = prefs.getString(_prefBrandName) ?? state.brandName;
-      String tag = prefs.getString(_prefTagline) ?? state.tagline;
-      String url = prefs.getString(_prefApiUrl) ?? state.apiBaseUrl;
-      bool side = prefs.getBool(_prefIsSidebarCollapsed) ?? state.isSidebarCollapsed;
+      String bName = prefs.getString(_prefBrandName) ?? 'Krishi Bhandar';
+      String tag = prefs.getString(_prefTagline) ?? 'Enterprise Agriculture Operations';
+      String url = prefs.getString(_prefApiUrl) ?? 'https://krishi-backend-seven.vercel.app';
+      bool side = prefs.getBool(_prefIsSidebarCollapsed) ?? false;
 
-      emit(state.copyWith(
+      return ThemeState(
         themeMode: mode,
         paletteId: pal,
         fontFamily: font,
@@ -83,7 +84,16 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
         tagline: tag,
         apiBaseUrl: url,
         isSidebarCollapsed: side,
-      ));
+      );
+    } catch (_) {
+      return const ThemeState();
+    }
+  }
+
+  Future<void> _onLoadThemeSettings(LoadThemeSettings event, Emitter<ThemeState> emit) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      emit(getInitialState(prefs));
     } catch (_) {}
   }
 

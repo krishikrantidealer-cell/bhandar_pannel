@@ -173,59 +173,28 @@ class ProductModel {
     return names;
   }
 
-  /// Resolves all distinct sub-category names across all category taxonomies
-  List<String> resolveAllSubCategoryNames(List<CategoryModel> categories) {
-    final subNames = <String>{};
-    final allCats = resolveAllCategories(categories);
-    final allIds = <String>[
-      if (categoryId != null && categoryId!.isNotEmpty) categoryId!,
-      ...categoryIds,
-      if (subCategory != null && subCategory!.isNotEmpty) subCategory!,
-    ];
-
-    for (final cat in allCats) {
-      for (final sub in cat.subCategories) {
-        if (allIds.contains(sub.id)) {
-          subNames.add(sub.name);
-        }
-      }
-    }
-
-    // Direct subCategory string
-    if (subCategory != null && subCategory!.isNotEmpty && !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(subCategory!)) {
-      subNames.add(subCategory!);
-    }
-
-    // Single resolver fallback
-    if (subNames.isEmpty) {
-      final single = resolveSubCategoryName(categories);
-      if (single != null && single.isNotEmpty) {
-        subNames.add(single);
-      }
-    }
-
-    return subNames.toList();
-  }
-
   /// Resolves the primary category model from category & categoryIds
   CategoryModel? resolvePrimaryCategory(List<CategoryModel> categories) {
     final matchedCats = resolveAllCategories(categories);
     if (matchedCats.isEmpty) return null;
 
-    // Prioritize main parent categories (those with subCategories or top parent names)
+    // Prioritize main parent categories
     const topParents = [
       'fungicides',
       'insecticides',
       'herbicides',
       'pgrs',
+      'plant-growth-regulators',
       'fertilizers',
       'bio products',
+      'bio-pesticides',
+      'seeds',
       'micronutrients',
       'antibiotics',
       'organic fertilizers'
     ];
     for (final cat in matchedCats) {
-      if (cat.subCategories.isNotEmpty || topParents.contains(cat.name.toLowerCase())) {
+      if (topParents.contains(cat.slug.toLowerCase()) || topParents.contains(cat.name.toLowerCase())) {
         return cat;
       }
     }
@@ -241,70 +210,6 @@ class ProductModel {
       return category;
     }
     return 'General';
-  }
-
-  /// Resolves the Sub-Category name (e.g. "Chemical-Fungicide", "Bio-Fungicide", "Organic-Fungicide")
-  String? resolveSubCategoryName(List<CategoryModel> categories) {
-    final primary = resolvePrimaryCategory(categories);
-    final allIds = <String>[
-      if (categoryId != null && categoryId!.isNotEmpty) categoryId!,
-      ...categoryIds,
-      if (subCategory != null && subCategory!.isNotEmpty) subCategory!,
-    ];
-
-    // 1. If primary category defines subCategories (e.g. Fungicides -> [Chemical-Fungicide, Bio-Fungicide, Organic-Fungicide])
-    if (primary != null && primary.subCategories.isNotEmpty) {
-      for (final sub in primary.subCategories) {
-        // Direct ID match
-        if (allIds.contains(sub.id)) {
-          return sub.name;
-        }
-
-        // Subcategory name match against other category docs in categoryIds
-        final cleanSub = sub.name.toLowerCase().replaceAll(RegExp(r'[-_ ]'), '');
-        for (final id in allIds) {
-          final otherCat = categories.where((c) => c.id == id || c.slug == id).firstOrNull;
-          if (otherCat != null && otherCat.id != primary.id) {
-            final cleanOther = otherCat.name.toLowerCase().replaceAll(RegExp(r'[-_ ]'), '');
-            if (cleanOther == cleanSub || cleanOther.contains(cleanSub) || cleanSub.contains(cleanOther)) {
-              return sub.name;
-            }
-          }
-        }
-
-        // Title and tags keyword match
-        final cleanTitle = title.toLowerCase();
-        if (cleanSub.contains('bio') && cleanTitle.contains('bio')) {
-          return sub.name;
-        }
-        if (cleanSub.contains('organic') && cleanTitle.contains('organic')) {
-          return sub.name;
-        }
-        if (cleanSub.contains('chemical') && cleanTitle.contains('chemical')) {
-          return sub.name;
-        }
-      }
-    }
-
-    // 2. If another category is matched (e.g. "Organic Fungicides", "Bio-Pesticides", "Bio-Fertilizers")
-    for (final id in allIds) {
-      final otherCat = categories.where((c) => c.id == id || c.slug == id).firstOrNull;
-      if (otherCat != null && (primary == null || otherCat.id != primary.id)) {
-        return otherCat.name;
-      }
-    }
-
-    // 3. Direct subCategory string if non-empty and not an ObjectId
-    if (subCategory != null && subCategory!.isNotEmpty && !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(subCategory!)) {
-      return subCategory;
-    }
-
-    // 4. Product Type fallback if informative (e.g. "Powder", "Liquid", "Granules")
-    if (productType != null && productType!.isNotEmpty && productType!.toLowerCase() != category.toLowerCase()) {
-      return productType![0].toUpperCase() + productType!.substring(1).toLowerCase();
-    }
-
-    return null;
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {

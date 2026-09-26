@@ -118,9 +118,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                 }
 
                 final categoryName = product.resolveCategoryName(categoryState.categories);
-                final subCategoryName = product.resolveSubCategoryName(categoryState.categories);
                 final allCategoryNames = product.resolveAllCategoryNames(categoryState.categories);
-                final allSubCategoryNames = product.resolveAllSubCategoryNames(categoryState.categories);
                 final allImages = product.images.isNotEmpty
                     ? product.images
                     : ['https://placehold.co/600x600/png?text=Krishi+Bhandar'];
@@ -253,9 +251,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                                 allImages,
                                 currentImageUrl,
                                 categoryName,
-                                subCategoryName,
                                 allCategoryNames,
-                                allSubCategoryNames,
                                 themeState,
                                 isDark,
                               ),
@@ -277,9 +273,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                               allImages,
                               currentImageUrl,
                               categoryName,
-                              subCategoryName,
                               allCategoryNames,
-                              allSubCategoryNames,
                               themeState,
                               isDark,
                             ),
@@ -303,9 +297,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
     List<String> allImages,
     String currentImageUrl,
     String categoryName,
-    String? subCategoryName,
     List<String> allCategoryNames,
-    List<String> allSubCategoryNames,
     ThemeState themeState,
     bool isDark,
   ) {
@@ -347,6 +339,10 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                   child: ImagePreview(
                     url: currentImageUrl,
                     fit: BoxFit.contain,
+                    enableEnlarge: true,
+                    title: product.title,
+                    subtitle: categoryName.isNotEmpty ? categoryName : null,
+                    images: allImages,
                   ),
                 ),
               ),
@@ -442,27 +438,6 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                       border: Border.all(color: themeState.currentPalette.primary.withValues(alpha: 0.3), width: 0.8),
                     ),
                     child: Text(cat, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: themeState.currentPalette.primary)),
-                  )).toList(),
-                ),
-                const SizedBox(height: 8),
-              ],
-              if (subCategoryName != null && subCategoryName.isNotEmpty)
-                _buildMetaRow('Sub-Category', subCategoryName, isDark),
-              if (allSubCategoryNames.length > 1) ...[
-                const SizedBox(height: 6),
-                Text('All Sub-Categories:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569))),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: allSubCategoryNames.map((sub) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1), width: 0.8),
-                    ),
-                    child: Text(sub, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155))),
                   )).toList(),
                 ),
                 const SizedBox(height: 8),

@@ -67,9 +67,7 @@ class _ProductEditViewState extends State<ProductEditView> {
   late TextEditingController _newImageUrlController;
 
   late String _selectedStatus;
-  late bool _buy1get1;
   String? _selectedCategory;
-  String? _selectedSubCategory;
   late List<String> _assignedCollections;
   late TextEditingController _newCollectionController;
 
@@ -89,7 +87,6 @@ class _ProductEditViewState extends State<ProductEditView> {
     _newCollectionController = TextEditingController();
 
     _selectedStatus = 'active';
-    _buy1get1 = false;
     _assignedCollections = [];
     _images = [];
     _variants = [
@@ -118,11 +115,9 @@ class _ProductEditViewState extends State<ProductEditView> {
 
     final validStatuses = ['active', 'draft', 'archived'];
     _selectedStatus = validStatuses.contains(p.status) ? p.status : 'active';
-    _buy1get1 = p.buy1get1;
     _assignedCollections = List<String>.from(p.assignedCollections);
 
     _selectedCategory = p.resolveCategoryName(categories);
-    _selectedSubCategory = p.resolveSubCategoryName(categories);
 
     _images = p.images.isNotEmpty ? List<String>.from(p.images) : [];
 
@@ -146,24 +141,6 @@ class _ProductEditViewState extends State<ProductEditView> {
       v.dispose();
     }
     super.dispose();
-  }
-
-  List<String> _getAvailableSubCategories(List<CategoryModel> categories) {
-    if (_selectedCategory == null) return [];
-    final matched = categories
-        .where((c) => c.name.trim().toLowerCase() == _selectedCategory!.trim().toLowerCase())
-        .firstOrNull;
-    if (matched != null) {
-      final names = <String>[];
-      for (final s in matched.subCategories) {
-        final n = s.name.trim();
-        if (n.isNotEmpty && !names.contains(n)) {
-          names.add(n);
-        }
-      }
-      return names;
-    }
-    return [];
   }
 
   void _saveProduct(ProductModel? existingProduct, List<CategoryModel> categories) {
@@ -190,7 +167,6 @@ class _ProductEditViewState extends State<ProductEditView> {
 
     // Map Category IDs matching MongoDB structure
     String catId = existingProduct?.category ?? '';
-    String? subCatId = existingProduct?.subCategory;
 
     if (_selectedCategory != null) {
       final matchedCat = categories
@@ -198,14 +174,6 @@ class _ProductEditViewState extends State<ProductEditView> {
           .firstOrNull;
       if (matchedCat != null) {
         catId = matchedCat.id;
-        if (_selectedSubCategory != null) {
-          final matchedSub = matchedCat.subCategories
-              .where((s) => s.name.toLowerCase() == _selectedSubCategory!.toLowerCase())
-              .firstOrNull;
-          if (matchedSub != null) {
-            subCatId = matchedSub.id;
-          }
-        }
       }
     }
 
@@ -226,6 +194,15 @@ class _ProductEditViewState extends State<ProductEditView> {
     final isCreatingNew = existingProduct == null;
     final id = isCreatingNew ? 'prod_${DateTime.now().millisecondsSinceEpoch}' : existingProduct.id;
 
+    final isBogo = _assignedCollections.any((c) =>
+            c.toLowerCase().contains('buy 1 get 1') ||
+            c.toLowerCase() == 'buy-1-get-1' ||
+            c.toLowerCase() == 'bogo') ||
+        tagsList.any((t) =>
+            t.toLowerCase() == 'buy-1-get-1' ||
+            t.toLowerCase() == 'bogo' ||
+            t.toLowerCase().contains('buy 1 get 1'));
+
     final updated = ProductModel(
       id: id,
       title: _titleController.text.trim(),
@@ -235,13 +212,12 @@ class _ProductEditViewState extends State<ProductEditView> {
       categoryIds: existingProduct?.categoryIds.isNotEmpty == true
           ? existingProduct!.categoryIds
           : (catId.isNotEmpty ? [catId] : const []),
-      subCategory: subCatId,
       assignedCollections: _assignedCollections,
       price: primaryVariant.price,
       mrp: primaryVariant.mrp,
       images: _images,
       status: _selectedStatus,
-      buy1get1: _buy1get1,
+      buy1get1: isBogo,
       description: _descController.text.trim().isNotEmpty ? _descController.text.trim() : null,
       tags: tagsList,
       variants: variantModels,
@@ -291,8 +267,6 @@ class _ProductEditViewState extends State<ProductEditView> {
                 if (!_initialized && categoryState.categories.isNotEmpty && _selectedCategory == null) {
                   _selectedCategory = categoryState.categories.first.name;
                 }
-
-                final availableSubCats = _getAvailableSubCategories(categoryState.categories);
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -387,18 +361,16 @@ class _ProductEditViewState extends State<ProductEditView> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Left Column: Media Gallery + Categories + Collections + Promotions
+                              // Left Column: Media Gallery + Categories + Collections
                               Expanded(
                                 flex: 5,
                                 child: Column(
                                   children: [
                                     _buildMediaSection(themeState, isDark),
                                     const SizedBox(height: 16),
-                                    _buildCategorySection(categoryState.categories, availableSubCats, themeState, isDark),
+                                    _buildCategorySection(categoryState.categories, themeState, isDark),
                                     const SizedBox(height: 16),
                                     _buildCollectionsSection(themeState, isDark),
-                                    const SizedBox(height: 16),
-                                    _buildPromoSection(themeState, isDark),
                                   ],
                                 ),
                               ),
@@ -426,11 +398,9 @@ class _ProductEditViewState extends State<ProductEditView> {
                               const SizedBox(height: 16),
                               _buildMediaSection(themeState, isDark),
                               const SizedBox(height: 16),
-                              _buildCategorySection(categoryState.categories, availableSubCats, themeState, isDark),
+                              _buildCategorySection(categoryState.categories, themeState, isDark),
                               const SizedBox(height: 16),
                               _buildCollectionsSection(themeState, isDark),
-                              const SizedBox(height: 16),
-                              _buildPromoSection(themeState, isDark),
                               const SizedBox(height: 16),
                               _buildVariantsSection(themeState, isDark),
                               const SizedBox(height: 16),
@@ -643,8 +613,8 @@ class _ProductEditViewState extends State<ProductEditView> {
     );
   }
 
-  Widget _buildCategorySection(List<CategoryModel> categories, List<String> availableSubCats, ThemeState themeState, bool isDark) {
-    // 1. Deduplicate Category Names
+  Widget _buildCategorySection(List<CategoryModel> categories, ThemeState themeState, bool isDark) {
+    // Deduplicate Category Names
     final uniqueCategoryNames = <String>[];
     for (final c in categories) {
       final n = c.name.trim();
@@ -665,86 +635,31 @@ class _ProductEditViewState extends State<ProductEditView> {
       _selectedCategory = uniqueCategoryNames.first;
     }
 
-    // 2. Deduplicate Sub-Category Names
-    final uniqueSubCatNames = <String>[];
-    for (final s in availableSubCats) {
-      final n = s.trim();
-      if (n.isNotEmpty && !uniqueSubCatNames.contains(n)) {
-        uniqueSubCatNames.add(n);
-      }
-    }
-
-    // Ensure selected sub-category is valid
-    if (_selectedSubCategory != null && _selectedSubCategory!.trim().isNotEmpty) {
-      final subMatch = uniqueSubCatNames.where((s) => s.toLowerCase() == _selectedSubCategory!.trim().toLowerCase()).firstOrNull;
-      if (subMatch != null) {
-        _selectedSubCategory = subMatch;
-      } else {
-        _selectedSubCategory = null;
-      }
-    }
-
     return _buildCard(
-      title: '3. CATEGORY & SUB-CATEGORY',
+      title: '3. CATEGORY',
       icon: Icons.category_rounded,
       themeState: themeState,
       isDark: isDark,
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Category *', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569))),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  key: ValueKey('cat_${_selectedCategory}_${uniqueCategoryNames.length}'),
-                  initialValue: _selectedCategory,
-                  dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  items: uniqueCategoryNames.map((name) => DropdownMenuItem(value: name, child: Text(name, style: const TextStyle(fontSize: 12.5)))).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedCategory = val;
-                      _selectedSubCategory = null;
-                    });
-                  },
-                ),
-              ],
+          Text('Category *', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569))),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            key: ValueKey('cat_${_selectedCategory}_${uniqueCategoryNames.length}'),
+            initialValue: _selectedCategory,
+            dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Sub-Category', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569))),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String?>(
-                  key: ValueKey('sub_${_selectedCategory}_${_selectedSubCategory}_${uniqueSubCatNames.length}'),
-                  initialValue: _selectedSubCategory,
-                  dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    hintText: uniqueSubCatNames.isEmpty ? 'None Available' : 'Select Sub-Category',
-                  ),
-                  items: [
-                    const DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text('None (Main Category Only)', style: TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8))),
-                    ),
-                    ...uniqueSubCatNames.map((s) => DropdownMenuItem<String?>(value: s, child: Text(s, style: const TextStyle(fontSize: 12.5)))),
-                  ],
-                  onChanged: (val) => setState(() => _selectedSubCategory = val),
-                ),
-              ],
-            ),
+            items: uniqueCategoryNames.map((name) => DropdownMenuItem(value: name, child: Text(name, style: const TextStyle(fontSize: 12.5)))).toList(),
+            onChanged: (val) {
+              setState(() {
+                _selectedCategory = val;
+              });
+            },
           ),
         ],
       ),
@@ -927,51 +842,9 @@ class _ProductEditViewState extends State<ProductEditView> {
     );
   }
 
-  Widget _buildPromoSection(ThemeState themeState, bool isDark) {
-    return _buildCard(
-      title: '5. PROMOTIONS & OFFERS',
-      icon: Icons.local_offer_rounded,
-      themeState: themeState,
-      isDark: isDark,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: _buy1get1 ? const Color(0xFFEF4444).withValues(alpha: 0.08) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: _buy1get1 ? const Color(0xFFEF4444).withValues(alpha: 0.3) : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.card_giftcard_rounded, size: 20, color: Color(0xFFEF4444)),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Buy 1 Get 1 Free (1+1 Offer)', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
-                    Text('Auto attaches promotion badge on customer storefront', style: TextStyle(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
-                  ],
-                ),
-              ],
-            ),
-            Switch(
-              value: _buy1get1,
-              activeThumbColor: const Color(0xFFEF4444),
-              onChanged: (val) => setState(() => _buy1get1 = val),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildVariantsSection(ThemeState themeState, bool isDark) {
     return _buildCard(
-      title: '6. VARIANT PRICING & OPTIONS',
+      title: '5. VARIANT PRICING & OPTIONS',
       icon: Icons.tune_rounded,
       themeState: themeState,
       isDark: isDark,
@@ -1062,7 +935,7 @@ class _ProductEditViewState extends State<ProductEditView> {
 
   Widget _buildDescriptionSection(ThemeState themeState, bool isDark) {
     return _buildCard(
-      title: '7. DETAILED PRODUCT DESCRIPTION',
+      title: '6. DETAILED PRODUCT DESCRIPTION',
       icon: Icons.description_rounded,
       themeState: themeState,
       isDark: isDark,

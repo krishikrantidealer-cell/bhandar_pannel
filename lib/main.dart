@@ -18,14 +18,18 @@ import 'logic/banners/banner_bloc.dart';
 import 'logic/coupons/coupon_bloc.dart';
 import 'logic/dashboard/dashboard_bloc.dart';
 
-void main() {
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
 
   final apiClient = ApiClient(baseUrl: AppConfig.defaultApiBaseUrl);
   final apiService = BhandarApiService(apiClient: apiClient);
   final repository = BhandarRepository(apiService: apiService);
 
-  final authBloc = AuthBloc(repository: repository);
+  final authBloc = AuthBloc(repository: repository, prefs: prefs);
+  final themeBloc = ThemeBloc(prefs: prefs);
   final router = AppRouter.createRouter(authBloc);
 
   runApp(
@@ -36,7 +40,7 @@ void main() {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>.value(value: authBloc),
-          BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
+          BlocProvider<ThemeBloc>.value(value: themeBloc),
           BlocProvider<ProductBloc>(create: (_) => ProductBloc(repository: repository)),
           BlocProvider<CategoryBloc>(create: (_) => CategoryBloc(repository: repository)),
           BlocProvider<CollectionBloc>(create: (_) => CollectionBloc(repository: repository)),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/category_model.dart';
 import '../../models/product_model.dart';
 import 'image_preview.dart';
+import '../../core/utils/image_upload_helper.dart';
 
 class ProductEditDialog extends StatefulWidget {
   final ProductModel? existingProduct;
@@ -29,9 +30,7 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
   late TextEditingController _newImageUrlController;
 
   late String _selectedStatus;
-  late bool _buy1get1;
   String? _selectedCategory;
-  String? _selectedSubCategory;
 
   late List<String> _images;
   late List<_VariantEditRow> _variants;
@@ -48,12 +47,10 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
     _newImageUrlController = TextEditingController();
 
     _selectedStatus = p?.status ?? 'active';
-    _buy1get1 = p?.buy1get1 ?? false;
 
     // Resolve initial category
     if (p != null) {
       _selectedCategory = p.resolveCategoryName(widget.categories);
-      _selectedSubCategory = p.resolveSubCategoryName(widget.categories);
     } else if (widget.categories.isNotEmpty) {
       _selectedCategory = widget.categories.first.name;
     }
@@ -85,17 +82,6 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
       v.dispose();
     }
     super.dispose();
-  }
-
-  List<String> _getAvailableSubCategories() {
-    if (_selectedCategory == null) return [];
-    final matched = widget.categories
-        .where((c) => c.name.toLowerCase() == _selectedCategory!.toLowerCase())
-        .firstOrNull;
-    if (matched != null) {
-      return matched.subCategories.map((s) => s.name).toList();
-    }
-    return [];
   }
 
   void _addImageUrl() {
@@ -174,6 +160,16 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
         .where((c) => c.name.toLowerCase() == (_selectedCategory ?? '').toLowerCase())
         .firstOrNull;
 
+    final assignedCols = widget.existingProduct?.assignedCollections ?? <String>[];
+    final isBogo = assignedCols.any((c) =>
+            c.toLowerCase().contains('buy 1 get 1') ||
+            c.toLowerCase() == 'buy-1-get-1' ||
+            c.toLowerCase() == 'bogo') ||
+        rawTags.any((t) =>
+            t.toLowerCase() == 'buy-1-get-1' ||
+            t.toLowerCase() == 'bogo' ||
+            t.toLowerCase().contains('buy 1 get 1'));
+
     final updatedProduct = ProductModel(
       id: widget.existingProduct?.id ?? 'prod_${DateTime.now().millisecondsSinceEpoch}',
       title: _titleController.text.trim(),
@@ -181,18 +177,18 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
       category: _selectedCategory ?? 'General',
       categoryId: matchedCat?.id,
       categoryIds: matchedCat != null ? [matchedCat.id] : [],
-      subCategory: _selectedSubCategory,
+      assignedCollections: assignedCols,
       tags: rawTags,
       brand: _brandController.text.trim().isEmpty ? 'Krishi Bhandar' : _brandController.text.trim(),
       status: _selectedStatus,
-      buy1get1: _buy1get1,
+      buy1get1: isBogo,
       images: _images,
       variants: productVariants,
       price: primaryPrice,
       mrp: primaryMrp,
       inStock: _selectedStatus == 'active',
       isPublished: _selectedStatus == 'active',
-      isFeatured: _buy1get1,
+      isFeatured: widget.existingProduct?.isFeatured ?? isBogo,
     );
 
     widget.onSave(updatedProduct);
@@ -204,7 +200,6 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isEditing = widget.existingProduct != null;
-    final availableSubCategories = _getAvailableSubCategories();
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -414,11 +409,26 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
                                     child: TextField(
                                       controller: _newImageUrlController,
                                       style: const TextStyle(fontSize: 13),
-                                      decoration: const InputDecoration(
-                                        hintText: 'Paste Image URL (https://storage.googleapis.com/... or https://...)',
-                                        prefixIcon: Icon(Icons.add_link_rounded, size: 18),
+                                      decoration: InputDecoration(
+                                        hintText: 'Paste Image URL (https://storage.googleapis.com/...)',
+                                        prefixIcon: const Icon(Icons.add_link_rounded, size: 18),
+                                        suffixIcon: IconButton(
+                                          tooltip: 'Upload to Google Bucket',
+                                          icon: const Icon(Icons.cloud_upload_outlined, color: Colors.blue, size: 18),
+                                          onPressed: () async {
+                                            final uploadedUrl = await ImageUploadHelper.pickAndUploadImage(
+                                              context: context,
+                                              folder: 'products',
+                                            );
+                                            if (uploadedUrl != null && mounted) {
+                                              setState(() {
+                                                _images.add(uploadedUrl);
+                                              });
+                                            }
+                                          },
+                                        ),
                                         isDense: true,
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                       ),
                                     ),
                                   ),
@@ -431,8 +441,30 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
                                     style: ElevatedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(horizontal: 14),
                                     ),
-                                    icon: const Icon(Icons.add_photo_alternate_rounded, size: 16),
-                                    label: const Text('Add Image', style: TextStyle(fontSize: 12.5)),
+                                    icon: const Icon(Icons.add_rounded, size: 16),
+                                    label: const Text('Add Link', style: TextStyle(fontSize: 12.5)),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  height: 40,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final uploadedUrl = await ImageUploadHelper.pickAndUploadImage(
+                                        context: context,
+                                        folder: 'products',
+                                      );
+                                      if (uploadedUrl != null && mounted) {
+                                        setState(() {
+                                          _images.add(uploadedUrl);
+                                        });
+                                      }
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                                    ),
+                                    icon: const Icon(Icons.cloud_upload_outlined, size: 16),
+                                    label: const Text('Upload File', style: TextStyle(fontSize: 12.5)),
                                   ),
                                 ),
                               ],
@@ -497,127 +529,33 @@ class _ProductEditDialogState extends State<ProductEditDialog> {
                         ],
                       ),
 
-                      const SizedBox(height: 14),
-
-                      // Buy 1 Get 1 Free Promo Toggle
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: _buy1get1
-                                ? const Color(0xFFEF4444).withValues(alpha: 0.6)
-                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.local_offer_rounded,
-                                  size: 20,
-                                  color: _buy1get1 ? const Color(0xFFEF4444) : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Buy 1 Get 1 Free (1+1 BOGO Promotion)',
-                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                                    ),
-                                    Text(
-                                      'Displays promotional 1+1 badge and flags item across banners',
-                                      style: TextStyle(
-                                        fontSize: 11.5,
-                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Switch(
-                              value: _buy1get1,
-                              activeThumbColor: const Color(0xFFEF4444),
-                              onChanged: (val) => setState(() => _buy1get1 = val),
-                            ),
-                          ],
-                        ),
-                      ),
-
                       const SizedBox(height: 20),
 
-                      // SECTION 3: Categorization & Hierarchy
-                      _buildSectionHeader('3. Categories & Sub-Category Hierarchy', Icons.category_rounded, isDark),
+                      // SECTION 3: Categorization
+                      _buildSectionHeader('3. Product Category', Icons.category_rounded, isDark),
                       const SizedBox(height: 10),
 
-                      Row(
-                        children: [
-                          // Parent Category Dropdown
-                          Expanded(
-                            flex: 1,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: widget.categories.any((c) => c.name == _selectedCategory)
-                                  ? _selectedCategory
-                                  : (widget.categories.isNotEmpty ? widget.categories.first.name : null),
-                              isExpanded: true,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDark ? Colors.white : const Color(0xFF1E293B),
-                              ),
-                              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                              decoration: const InputDecoration(labelText: 'Parent Category *'),
-                              items: widget.categories.map((c) {
-                                return DropdownMenuItem(value: c.name, child: Text(c.name, overflow: TextOverflow.ellipsis));
-                              }).toList(),
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() {
-                                    _selectedCategory = val;
-                                    // Reset subcategory when parent changes
-                                    final subCats = _getAvailableSubCategories();
-                                    _selectedSubCategory = subCats.isNotEmpty ? subCats.first : null;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-
-                          // Sub-Category Dropdown (Dynamic)
-                          Expanded(
-                            flex: 1,
-                            child: DropdownButtonFormField<String?>(
-                              initialValue: availableSubCategories.contains(_selectedSubCategory)
-                                  ? _selectedSubCategory
-                                  : (availableSubCategories.isNotEmpty ? availableSubCategories.first : null),
-                              isExpanded: true,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDark ? Colors.white : const Color(0xFF1E293B),
-                              ),
-                              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                              decoration: InputDecoration(
-                                labelText: availableSubCategories.isEmpty
-                                    ? 'Sub-Category (None in category)'
-                                    : 'Sub-Category',
-                              ),
-                              items: [
-                                const DropdownMenuItem(value: null, child: Text('No Sub-Category')),
-                                ...availableSubCategories.map((s) {
-                                  return DropdownMenuItem(value: s, child: Text(s, overflow: TextOverflow.ellipsis));
-                                }),
-                              ],
-                              onChanged: availableSubCategories.isEmpty
-                                  ? null
-                                  : (val) => setState(() => _selectedSubCategory = val),
-                            ),
-                          ),
-                        ],
+                      DropdownButtonFormField<String>(
+                        initialValue: widget.categories.any((c) => c.name == _selectedCategory)
+                            ? _selectedCategory
+                            : (widget.categories.isNotEmpty ? widget.categories.first.name : null),
+                        isExpanded: true,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                        dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        decoration: const InputDecoration(labelText: 'Category *'),
+                        items: widget.categories.map((c) {
+                          return DropdownMenuItem(value: c.name, child: Text(c.name, overflow: TextOverflow.ellipsis));
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _selectedCategory = val;
+                            });
+                          }
+                        },
                       ),
 
                       const SizedBox(height: 14),

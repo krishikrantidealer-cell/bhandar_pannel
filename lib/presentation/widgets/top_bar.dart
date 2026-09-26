@@ -68,15 +68,15 @@ class TopBar extends StatelessWidget {
             final userRole = user?.userType.name.toUpperCase() ?? 'ADMIN';
 
             return AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 260),
               curve: Curves.easeInOutCubic,
-              height: 70,
+              height: 64,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: isDark ? themeState.currentPalette.surfaceDark : themeState.currentPalette.surfaceLight,
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
                 border: Border(
                   bottom: BorderSide(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                     width: 1,
                   ),
                 ),
@@ -99,9 +99,11 @@ class TopBar extends StatelessWidget {
                       children: [
                         Text(
                           sectionTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: TextStyle(
+                            fontSize: 15,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.2,
+                            color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -112,6 +114,7 @@ class TopBar extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -123,15 +126,15 @@ class TopBar extends StatelessWidget {
                   // Admin Profile Menu Button
                   PopupMenuButton<String>(
                     tooltip: 'Admin Account Options',
-                    offset: const Offset(0, 46),
+                    offset: const Offset(0, 44),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                       side: BorderSide(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                         width: 1,
                       ),
                     ),
-                    color: isDark ? const Color(0xFF161E2E) : Colors.white,
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
                     onSelected: (val) {
                       if (val == 'logout') {
                         _confirmLogout(context);
@@ -188,25 +191,16 @@ class TopBar extends StatelessWidget {
                         ),
                       ),
                     ],
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 350),
-                      curve: Curves.easeInOutCubic,
-                      height: 38,
+                    child: Container(
+                      height: 36,
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          color: isDark ? const Color(0xFF334155).withValues(alpha: 0.6) : const Color(0xFFE2E8F0),
                           width: 1,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -215,20 +209,15 @@ class TopBar extends StatelessWidget {
                             width: 24,
                             height: 24,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  themeState.currentPalette.primary,
-                                  themeState.currentPalette.secondary,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(6),
+                              color: themeState.currentPalette.primary.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
                             ),
                             child: Center(
                               child: Text(
                                 displayName.isNotEmpty ? displayName[0].toUpperCase() : 'A',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.white,
+                                  color: themeState.currentPalette.primary,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),

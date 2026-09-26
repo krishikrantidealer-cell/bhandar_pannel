@@ -43,9 +43,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
       initialIndex: widget.initialTabIndex.clamp(0, 3),
     );
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {});
-      }
+      setState(() {});
     });
   }
 
@@ -107,7 +105,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
     final endIndex = (startIndex + _pageSize).clamp(0, totalItems);
     final pagedProducts = totalItems > 0 ? products.sublist(startIndex, endIndex) : <ProductModel>[];
 
-    // Compute deduplicated categories and available subcategories based on category selection
+    // Compute deduplicated categories based on category selection
     final List<String> distinctCategoryNames = [];
     for (final c in categoryState.categories) {
       final n = c.name.trim();
@@ -116,31 +114,75 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
       }
     }
 
-    final bool hasCategorySelected = productState.selectedCategory != null && productState.selectedCategory!.isNotEmpty;
-    final List<String> availableSubCategories = [];
-    if (hasCategorySelected) {
-      final matched = categoryState.categories
-          .where((c) => c.name.trim().toLowerCase() == productState.selectedCategory!.trim().toLowerCase())
-          .firstOrNull;
-      if (matched != null) {
-        for (final s in matched.subCategories) {
-          final sn = s.name.trim();
-          if (sn.isNotEmpty && !availableSubCategories.contains(sn)) {
-            availableSubCategories.add(sn);
-          }
-        }
-      }
-    }
-
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. High-Clarity KPI Metric Strip
-          _buildMetricsStrip(productState, distinctCategoryNames, themeState, isDark),
+          // 0. Harmony Purpose Banner
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.12 : 0.06),
+              borderRadius: BorderRadius.circular(themeState.borderRadius),
+              border: Border.all(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(Icons.inventory_2_rounded, size: 18, color: Color(0xFF2563EB)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Master Products Catalog',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF2563EB)),
+                      ),
+                      Text(
+                        'Manage individual items, variant prices, stock & search tags. Assign to Categories & Collections to display in mobile app.',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: () => context.read<ProductBloc>().add(const LoadProducts()),
+                  icon: const Icon(Icons.refresh_rounded, size: 16),
+                  label: const Text('Refresh'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _showAddEditProductModal(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text('Add Product', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ),
+          ),
 
-          // 2. Action & Filter Bar
+          // 1. Action & Filter Bar
           AnimatedContainer(
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeInOutCubic,
@@ -165,7 +207,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                 children: [
                   // Search
                   Expanded(
-                    flex: 3,
+                    flex: 5,
                     child: SizedBox(
                       height: 38,
                       child: TextField(
@@ -212,11 +254,11 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
 
                   // Category Filter Dropdown
                   Expanded(
-                    flex: 2,
+                    flex: 4,
                     child: SizedBox(
                       height: 38,
                       child: DropdownButtonFormField<String?>(
@@ -230,7 +272,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                             ? productState.selectedCategory
                             : null,
                         decoration: const InputDecoration(
-                          labelText: 'Category',
+                          labelText: 'Filter by Category',
                           isDense: true,
                           contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         ),
@@ -250,77 +292,8 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                         onChanged: (val) {
                           setState(() => _currentPage = 1);
                           context.read<ProductBloc>().add(FilterProductsByCategory(val));
-                          context.read<ProductBloc>().add(const FilterProductsBySubCategory(null));
                         },
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-
-                  // Sub-Category Filter Dropdown
-                  Expanded(
-                    flex: 2,
-                    child: SizedBox(
-                      height: 38,
-                      child: DropdownButtonFormField<String?>(
-                        isExpanded: true,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: !hasCategorySelected
-                              ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
-                              : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A)),
-                        ),
-                        initialValue: hasCategorySelected && availableSubCategories.contains(productState.selectedSubCategory)
-                            ? productState.selectedSubCategory
-                            : null,
-                        decoration: InputDecoration(
-                          labelText: !hasCategorySelected ? 'Sub-Category (Pick category first)' : 'Sub-Category',
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        ),
-                        dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                        items: !hasCategorySelected
-                            ? [
-                                const DropdownMenuItem(
-                                  value: null,
-                                  child: Text('Select category first', style: TextStyle(fontSize: 12.5)),
-                                )
-                              ]
-                            : [
-                                const DropdownMenuItem(
-                                  value: null,
-                                  child: Text('All Sub-Categories', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
-                                ),
-                                ...availableSubCategories.map((sub) {
-                                  return DropdownMenuItem(
-                                    value: sub,
-                                    child: Text(sub, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
-                                  );
-                                }),
-                              ],
-                        onChanged: !hasCategorySelected
-                            ? null
-                            : (val) {
-                                setState(() => _currentPage = 1);
-                                context.read<ProductBloc>().add(FilterProductsBySubCategory(val));
-                              },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-
-                  // Add Product Button
-                  SizedBox(
-                    height: 38,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showAddEditProductModal(),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      icon: const Icon(Icons.add_rounded, size: 17),
-                      label: const Text('Add Product', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],
@@ -355,7 +328,8 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                         style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
+                          letterSpacing: -0.2,
+                          color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
                         ),
                       ),
                       Wrap(
@@ -365,8 +339,16 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                           if (productState.selectedCategory != null)
                             Chip(
                               visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                              label: Text('Category: ${productState.selectedCategory}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                              label: Text(
+                                'Category: ${productState.selectedCategory}',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
+                                ),
+                              ),
                               onDeleted: () {
                                 setState(() => _currentPage = 1);
                                 context.read<ProductBloc>().add(const FilterProductsByCategory(null));
@@ -376,8 +358,16 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                           if (productState.selectedSubCategory != null)
                             Chip(
                               visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                              label: Text('Sub-Category: ${productState.selectedSubCategory}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                              label: Text(
+                                'Sub-Category: ${productState.selectedSubCategory}',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
+                                ),
+                              ),
                               onDeleted: () {
                                 setState(() => _currentPage = 1);
                                 context.read<ProductBloc>().add(const FilterProductsBySubCategory(null));
@@ -404,19 +394,18 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                     ],
                     rows: pagedProducts.map((prod) {
                       final categoryName = prod.resolveCategoryName(categoryState.categories);
-                      final subCategoryName = prod.resolveSubCategoryName(categoryState.categories);
 
                       return [
-                        // Image (Clickable)
-                        InkWell(
-                          onTap: () => _showProductDetailsModal(prod),
-                          borderRadius: BorderRadius.circular(6),
-                          child: ImagePreview(
-                            url: prod.images.isNotEmpty ? prod.images.first : null,
-                            width: 36,
-                            height: 36,
-                            borderRadius: 6,
-                          ),
+                        // Image (Click to enlarge)
+                        ImagePreview(
+                          url: prod.images.isNotEmpty ? prod.images.first : null,
+                          width: 36,
+                          height: 36,
+                          borderRadius: 6,
+                          enableEnlarge: true,
+                          title: prod.title,
+                          subtitle: categoryName.isNotEmpty ? categoryName : null,
+                          images: prod.images,
                         ),
 
                         // Title (Clickable)
@@ -482,55 +471,85 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                           ),
                         ),
 
-                        // Category & Sub-Category
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: themeState.currentPalette.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                categoryName,
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: themeState.currentPalette.primary,
+                        // Category & Collections
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF059669).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: const Color(0xFF059669).withValues(alpha: 0.3),
+                                    width: 0.8,
+                                  ),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (subCategoryName != null && subCategoryName.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.subdirectory_arrow_right_rounded,
-                                    size: 11,
-                                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Flexible(
-                                    child: Text(
-                                      subCategoryName,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.category_rounded, size: 11, color: Color(0xFF059669)),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        categoryName,
+                                        style: const TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF059669),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              if (prod.assignedCollections.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 2,
+                                  children: prod.assignedCollections.take(2).map((col) {
+                                    final isSpecial = col.toLowerCase().contains('buy') || col.toLowerCase().contains('crop');
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(3),
+                                        border: Border.all(
+                                          color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
+                                          width: 0.6,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            isSpecial ? Icons.auto_awesome_rounded : Icons.eco_rounded,
+                                            size: 9,
+                                            color: const Color(0xFF7C3AED),
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            col,
+                                            style: const TextStyle(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF7C3AED),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
 
                         // Price & MRP
@@ -556,7 +575,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                                     style: TextStyle(
                                       fontSize: 10.5,
                                       decoration: TextDecoration.lineThrough,
-                                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
                                     ),
                                   ),
                                 ],
@@ -585,7 +604,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                                 style: TextStyle(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
+                                  color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
                                 ),
                               ),
                             ),
@@ -597,7 +616,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
-                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -611,8 +630,8 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                           prod.brand,
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1E293B),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -679,7 +698,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF334155),
                               ),
                             ),
                             const SizedBox(width: 14),
@@ -688,7 +707,7 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF334155),
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -793,10 +812,23 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
     required bool isSelected,
     required Color primaryColor,
     required bool isDark,
+    required VoidCallback onTap,
   }) {
-    return Tab(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      hoverColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? primaryColor.withValues(alpha: isDark ? 0.14 : 0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          border: isSelected
+              ? Border.all(color: primaryColor.withValues(alpha: isDark ? 0.35 : 0.25), width: 1)
+              : Border.all(color: Colors.transparent, width: 1),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -805,25 +837,32 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
               size: 16,
               color: isSelected ? primaryColor : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 7),
             Text(
               title,
               style: TextStyle(
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                fontSize: 12.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 13,
                 color: isSelected
-                    ? primaryColor
-                    : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+                    ? (isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A))
+                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                letterSpacing: -0.2,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? primaryColor.withValues(alpha: 0.15)
-                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                borderRadius: BorderRadius.circular(8),
+                    ? primaryColor.withValues(alpha: 0.16)
+                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isSelected
+                      ? primaryColor.withValues(alpha: 0.3)
+                      : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                  width: 0.7,
+                ),
               ),
               child: Text(
                 '$count',
@@ -832,168 +871,8 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                   fontWeight: FontWeight.w700,
                   color: isSelected
                       ? primaryColor
-                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B)),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetricsStrip(
-    ProductState productState,
-    List<String> distinctCategoryNames,
-    ThemeState themeState,
-    bool isDark,
-  ) {
-    final all = productState.allProducts;
-    final total = all.length;
-    final active = all.where((p) => p.status == 'active').length;
-    final promos = all.where((p) => p.buy1get1).length;
-    final categoriesCount = distinctCategoryNames.length;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isCompact = constraints.maxWidth < 700;
-          if (isCompact) {
-            return const SizedBox.shrink();
-          }
-
-          return Row(
-            children: [
-              _buildMetricCard(
-                title: 'Total Catalog',
-                value: '$total',
-                subtitle: 'Active catalog items',
-                icon: Icons.grid_view_rounded,
-                accentColor: const Color(0xFF3B82F6),
-                themeState: themeState,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 10),
-              _buildMetricCard(
-                title: 'Live In Store',
-                value: '$active',
-                subtitle: total > 0 ? '${((active / total) * 100).toStringAsFixed(0)}% available' : '0% available',
-                icon: Icons.check_circle_outline_rounded,
-                accentColor: const Color(0xFF10B981),
-                themeState: themeState,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 10),
-              _buildMetricCard(
-                title: '1+1 Promo Deals',
-                value: '$promos',
-                subtitle: 'Active promotional items',
-                icon: Icons.card_giftcard_rounded,
-                accentColor: const Color(0xFFEF4444),
-                themeState: themeState,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 10),
-              _buildMetricCard(
-                title: 'Taxonomy Groups',
-                value: '$categoriesCount',
-                subtitle: 'Product categories',
-                icon: Icons.category_rounded,
-                accentColor: const Color(0xFF8B5CF6),
-                themeState: themeState,
-                isDark: isDark,
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildMetricCard({
-    required String title,
-    required String value,
-    required String subtitle,
-    required IconData icon,
-    required Color accentColor,
-    required ThemeState themeState,
-    required bool isDark,
-  }) {
-    return Expanded(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: isDark ? themeState.currentPalette.surfaceDark : themeState.currentPalette.surfaceLight,
-          borderRadius: BorderRadius.circular(themeState.borderRadius),
-          border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: isDark ? 0.18 : 0.10),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: accentColor.withValues(alpha: isDark ? 0.35 : 0.2),
-                  width: 1,
-                ),
-              ),
-              child: Center(
-                child: Icon(icon, color: accentColor, size: 18),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                      color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ),
             ),
           ],
@@ -1009,8 +888,6 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
 
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
-        final palette = themeState.currentPalette;
-
         return BlocBuilder<CategoryBloc, CategoryState>(
           builder: (context, categoryState) {
             return BlocBuilder<ProductBloc, ProductState>(
@@ -1031,60 +908,62 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                             children: [
                               // Top Sub-Navigation Tab Bar
                               Container(
+                                height: 50,
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                  color: isDark ? const Color(0xFF0F172A) : Colors.white,
                                   border: Border(
                                     bottom: BorderSide(
-                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                                       width: 1,
                                     ),
                                   ),
                                 ),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                                child: TabBar(
-                                  controller: _tabController,
-                                  isScrollable: true,
-                                  indicatorColor: palette.primary,
-                                  indicatorWeight: 2.5,
-                                  indicatorSize: TabBarIndicatorSize.label,
-                                  dividerColor: Colors.transparent,
-                                  splashFactory: NoSplash.splashFactory,
-                                  overlayColor: WidgetStateProperty.all(Colors.transparent),
-                                  labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-                                  tabs: [
-                                    _buildTabItem(
-                                      icon: Icons.inventory_2_rounded,
-                                      title: 'Products',
-                                      count: productCount,
-                                      isSelected: _tabController.index == 0,
-                                      primaryColor: palette.primary,
-                                      isDark: isDark,
-                                    ),
-                                    _buildTabItem(
-                                      icon: Icons.category_rounded,
-                                      title: 'Categories',
-                                      count: categoryCount,
-                                      isSelected: _tabController.index == 1,
-                                      primaryColor: palette.primary,
-                                      isDark: isDark,
-                                    ),
-                                    _buildTabItem(
-                                      icon: Icons.collections_bookmark_rounded,
-                                      title: 'Collection',
-                                      count: collectionCount,
-                                      isSelected: _tabController.index == 2,
-                                      primaryColor: palette.primary,
-                                      isDark: isDark,
-                                    ),
-                                    _buildTabItem(
-                                      icon: Icons.view_carousel_rounded,
-                                      title: 'Banners',
-                                      count: bannerCount,
-                                      isSelected: _tabController.index == 3,
-                                      primaryColor: palette.primary,
-                                      isDark: isDark,
-                                    ),
-                                  ],
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      _buildTabItem(
+                                        icon: Icons.inventory_2_rounded,
+                                        title: 'Products',
+                                        count: productCount,
+                                        isSelected: _tabController.index == 0,
+                                        primaryColor: const Color(0xFF2563EB),
+                                        isDark: isDark,
+                                        onTap: () => _tabController.animateTo(0),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _buildTabItem(
+                                        icon: Icons.category_rounded,
+                                        title: 'Categories',
+                                        count: categoryCount,
+                                        isSelected: _tabController.index == 1,
+                                        primaryColor: const Color(0xFF059669),
+                                        isDark: isDark,
+                                        onTap: () => _tabController.animateTo(1),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _buildTabItem(
+                                        icon: Icons.collections_bookmark_rounded,
+                                        title: 'Collections & Crops',
+                                        count: collectionCount,
+                                        isSelected: _tabController.index == 2,
+                                        primaryColor: const Color(0xFF7C3AED),
+                                        isDark: isDark,
+                                        onTap: () => _tabController.animateTo(2),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _buildTabItem(
+                                        icon: Icons.view_carousel_rounded,
+                                        title: 'Banners & Promotions',
+                                        count: bannerCount,
+                                        isSelected: _tabController.index == 3,
+                                        primaryColor: const Color(0xFFD97706),
+                                        isDark: isDark,
+                                        onTap: () => _tabController.animateTo(3),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
 

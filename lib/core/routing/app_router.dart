@@ -79,9 +79,28 @@ class AppRouter {
             // ),
             GoRoute(
               path: RoutePaths.products,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: ProductsView(),
-              ),
+              pageBuilder: (context, state) {
+                final tabStr = state.uri.queryParameters['tab'];
+                final tabIndex = int.tryParse(tabStr ?? '') ?? 0;
+                return NoTransitionPage(
+                  child: ProductsView(
+                    key: ValueKey('products_tab_$tabIndex'),
+                    initialTabIndex: tabIndex,
+                  ),
+                );
+              },
+            ),
+            GoRoute(
+              path: RoutePaths.categories,
+              redirect: (context, state) => '${RoutePaths.products}?tab=1',
+            ),
+            GoRoute(
+              path: '/collections',
+              redirect: (context, state) => '${RoutePaths.products}?tab=2',
+            ),
+            GoRoute(
+              path: RoutePaths.banners,
+              redirect: (context, state) => '${RoutePaths.products}?tab=3',
             ),
             GoRoute(
               path: RoutePaths.productNew,
@@ -115,36 +134,6 @@ class AppRouter {
                 );
               },
             ),
-            // GoRoute(
-            //   path: RoutePaths.categories,
-            //   pageBuilder: (context, state) => const NoTransitionPage(
-            //     child: CategoriesView(),
-            //   ),
-            // ),
-            // GoRoute(
-            //   path: RoutePaths.banners,
-            //   pageBuilder: (context, state) => const NoTransitionPage(
-            //     child: BannersView(),
-            //   ),
-            // ),
-            // GoRoute(
-            //   path: RoutePaths.coupons,
-            //   pageBuilder: (context, state) => const NoTransitionPage(
-            //     child: CouponsView(),
-            //   ),
-            // ),
-            // GoRoute(
-            //   path: RoutePaths.orders,
-            //   pageBuilder: (context, state) => const NoTransitionPage(
-            //     child: OrdersView(),
-            //   ),
-            // ),
-            // GoRoute(
-            //   path: RoutePaths.settings,
-            //   pageBuilder: (context, state) => const NoTransitionPage(
-            //     child: CustomizationView(),
-            //   ),
-            // ),
           ],
         ),
       ],

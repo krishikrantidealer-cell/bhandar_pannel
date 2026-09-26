@@ -27,7 +27,6 @@ class ProductState extends Equatable {
   List<ProductModel> getFilteredProducts(List<CategoryModel> categories) {
     return allProducts.where((p) {
       final catName = p.resolveCategoryName(categories);
-      final subCatName = p.resolveSubCategoryName(categories);
 
       final matchesCategory = selectedCategory == null ||
           selectedCategory!.isEmpty ||
@@ -38,23 +37,13 @@ class ProductState extends Equatable {
             return c != null && c.name.toLowerCase() == selectedCategory!.toLowerCase();
           });
 
-      final matchesSubCategory = selectedSubCategory == null ||
-          selectedSubCategory!.isEmpty ||
-          (subCatName != null && subCatName.toLowerCase() == selectedSubCategory!.toLowerCase()) ||
-          (p.subCategory != null && p.subCategory!.toLowerCase() == selectedSubCategory!.toLowerCase()) ||
-          p.categoryIds.any((cid) {
-            final c = categories.where((cat) => cat.id == cid || cat.slug == cid).firstOrNull;
-            return c != null && c.name.toLowerCase() == selectedSubCategory!.toLowerCase();
-          });
-
       final matchesSearch = searchQuery.isEmpty ||
           p.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
           catName.toLowerCase().contains(searchQuery.toLowerCase()) ||
-          (subCatName != null && subCatName.toLowerCase().contains(searchQuery.toLowerCase())) ||
           p.brand.toLowerCase().contains(searchQuery.toLowerCase()) ||
           (p.sku != null && p.sku!.toLowerCase().contains(searchQuery.toLowerCase()));
 
-      return matchesCategory && matchesSubCategory && matchesSearch;
+      return matchesCategory && matchesSearch;
     }).toList();
   }
 

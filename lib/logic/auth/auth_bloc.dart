@@ -14,23 +14,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   final BhandarRepository repository;
 
-  AuthBloc({required this.repository}) : super(const AuthState()) {
+  AuthBloc({required this.repository, SharedPreferences? prefs})
+      : super(getInitialAuthState(repository, prefs)) {
     on<CheckAuthStatus>(_onCheckAuthStatus);
     on<LoginSubmitted>(_onLoginSubmitted);
     on<LogoutRequested>(_onLogoutRequested);
 
-    add(const CheckAuthStatus());
+    if (prefs == null) {
+      add(const CheckAuthStatus());
+    }
   }
 
-  Future<void> _onCheckAuthStatus(CheckAuthStatus event, Emitter<AuthState> emit) async {
+  static AuthState getInitialAuthState(BhandarRepository repository, SharedPreferences? prefs) {
+    if (prefs == null) return const AuthState();
     try {
-      final prefs = await SharedPreferences.getInstance();
       final rememberMe = prefs.getBool(prefRememberMeKey) ?? true;
-
-      // If user chose not to remember, do not auto-restore session
       if (!rememberMe) {
-        emit(state.copyWith(status: AuthStatus.unauthenticated, clearUser: true));
-        return;
+        return const AuthState(status: AuthStatus.unauthenticated);
       }
 
       final userJson = prefs.getString(prefUserKey);
@@ -42,13 +42,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         if (user.isAdmin) {
           repository.setAuthToken(token);
-          emit(state.copyWith(status: AuthStatus.authenticated, currentUser: user));
-          return;
+          return AuthState(status: AuthStatus.authenticated, currentUser: user);
         }
       }
     } catch (_) {}
+    return const AuthState(status: AuthStatus.unauthenticated);
+  }
 
-    emit(state.copyWith(status: AuthStatus.unauthenticated, clearUser: true));
+  Future<void> _onCheckAuthStatus(CheckAuthStatus event, Emitter<AuthState> emit) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      emit(getInitialAuthState(repository, prefs));
+    } catch (_) {
+      emit(state.copyWith(status: AuthStatus.unauthenticated, clearUser: true));
+    }
   }
 
   Future<void> _onLoginSubmitted(LoginSubmitted event, Emitter<AuthState> emit) async {

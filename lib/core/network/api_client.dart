@@ -79,6 +79,55 @@ class ApiClient {
     }
   }
 
+  Future<String> uploadImageBytes({
+    required List<int> bytes,
+    required String filename,
+    String folder = 'images',
+  }) async {
+    const endpoint = '/api/upload';
+    try {
+      final uri = Uri.parse('$baseUrl$endpoint');
+      final request = http.MultipartRequest('POST', uri);
+
+      if (authToken != null && authToken!.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $authToken';
+      }
+      request.fields['folder'] = folder;
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: filename,
+        ),
+      );
+
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map) {
+          final url = decoded['url'] ??
+              decoded['imageUrl'] ??
+              decoded['fileUrl'] ??
+              decoded['location'] ??
+              decoded['path'] ??
+              (decoded['data'] is Map
+                  ? (decoded['data']['url'] ?? decoded['data']['imageUrl'] ?? decoded['data']['fileUrl'])
+                  : null);
+          if (url != null && url.toString().isNotEmpty) {
+            return url.toString();
+          }
+        }
+      }
+      throw ApiException('Upload failed — server returned ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Failed upload to $endpoint: $e');
+    }
+  }
+
   dynamic _processResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty) return null;
@@ -101,3 +150,4 @@ class ApiClient {
     }
   }
 }
+

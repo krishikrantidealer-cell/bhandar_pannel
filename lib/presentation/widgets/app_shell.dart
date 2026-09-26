@@ -43,6 +43,7 @@ class _AppShellState extends State<AppShell> {
             curve: Curves.easeInOutCubic,
             color: bg,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Sidebar (Desktop & Tablet)
                 if (!isMobile) Sidebar(currentPath: widget.currentPath),

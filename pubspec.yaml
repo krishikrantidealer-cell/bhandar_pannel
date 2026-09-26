@@ -46,6 +46,7 @@ dependencies:
   equatable: ^2.1.0
   lottie: ^3.6.1
   rive: 0.13.20
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

@@ -39,7 +39,7 @@ class StatCard extends StatelessWidget {
                   child: Text(
                     title,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
@@ -91,7 +91,7 @@ class StatCard extends StatelessWidget {
                         subtitle!,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

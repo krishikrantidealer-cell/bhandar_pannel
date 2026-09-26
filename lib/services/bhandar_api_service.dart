@@ -302,4 +302,21 @@ class BhandarApiService {
     }
     throw ApiException('Failed to load dashboard statistics');
   }
+
+  // ==========================================
+  // Image Uploads (Google Cloud Storage Bucket)
+  // ==========================================
+  Future<String> uploadImage({
+    required List<int> bytes,
+    required String filename,
+    String folder = 'categories',
+  }) async {
+    return apiClient.uploadImageBytes(
+      bytes: bytes,
+      filename: filename,
+      folder: folder,
+    );
+  }
 }
+
+

@@ -41,7 +41,6 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
     final isDark = theme.brightness == Brightness.dark;
     final product = widget.product;
     final categoryName = product.resolveCategoryName(widget.categories);
-    final subCategoryName = product.resolveSubCategoryName(widget.categories);
 
     final allImages = product.images.isNotEmpty
         ? product.images
@@ -154,6 +153,10 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
                                 width: double.infinity,
                                 height: 260,
                                 fit: BoxFit.contain,
+                                enableEnlarge: true,
+                                title: product.title,
+                                subtitle: categoryName.isNotEmpty ? categoryName : null,
+                                images: allImages,
                               ),
                             ),
                           ),
@@ -320,7 +323,7 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
 
                           const SizedBox(height: 10),
 
-                          // Category & Subcategory Card
+                          // Category Card
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
@@ -346,23 +349,6 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
                                     color: widget.themeState.currentPalette.primary,
                                   ),
                                 ),
-                                if (subCategoryName != null && subCategoryName.isNotEmpty) ...[
-                                  const SizedBox(width: 8),
-                                  Icon(
-                                    Icons.chevron_right_rounded,
-                                    size: 16,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    subCategoryName,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ],
                               ],
                             ),
                           ),
