@@ -19,12 +19,16 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   }
 
   Future<void> _onLoadProducts(LoadProducts event, Emitter<ProductState> emit) async {
-    emit(state.copyWith(status: ProductStatus.loading));
+    if (state.allProducts.isEmpty) {
+      emit(state.copyWith(status: ProductStatus.loading));
+    }
     try {
       final products = await repository.getProducts();
       emit(state.copyWith(status: ProductStatus.success, allProducts: products));
     } catch (e) {
-      emit(state.copyWith(status: ProductStatus.failure, errorMessage: e.toString()));
+      if (state.allProducts.isEmpty) {
+        emit(state.copyWith(status: ProductStatus.failure, errorMessage: e.toString()));
+      }
     }
   }
 

@@ -9,7 +9,27 @@ abstract class OrderEvent extends Equatable {
 }
 
 class LoadOrders extends OrderEvent {
-  const LoadOrders();
+  final bool refresh;
+  const LoadOrders({this.refresh = false});
+
+  @override
+  List<Object?> get props => [refresh];
+}
+
+class SearchOrders extends OrderEvent {
+  final String query;
+  const SearchOrders(this.query);
+
+  @override
+  List<Object?> get props => [query];
+}
+
+class FilterOrdersByStatus extends OrderEvent {
+  final OrderStatus? status;
+  const FilterOrdersByStatus(this.status);
+
+  @override
+  List<Object?> get props => [status];
 }
 
 class UpdateOrderStatusEvent extends OrderEvent {
@@ -21,3 +41,4 @@ class UpdateOrderStatusEvent extends OrderEvent {
   @override
   List<Object?> get props => [orderId, newStatus];
 }
+

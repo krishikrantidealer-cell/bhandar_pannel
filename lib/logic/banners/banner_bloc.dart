@@ -17,12 +17,16 @@ class BannerBloc extends Bloc<BannerEvent, BannerState> {
   }
 
   Future<void> _onLoadBanners(LoadBanners event, Emitter<BannerState> emit) async {
-    emit(state.copyWith(status: BannerStateStatus.loading));
+    if (state.banners.isEmpty) {
+      emit(state.copyWith(status: BannerStateStatus.loading));
+    }
     try {
       final banners = await repository.getBanners();
       emit(state.copyWith(status: BannerStateStatus.success, banners: banners));
     } catch (e) {
-      emit(state.copyWith(status: BannerStateStatus.failure, errorMessage: e.toString()));
+      if (state.banners.isEmpty) {
+        emit(state.copyWith(status: BannerStateStatus.failure, errorMessage: e.toString()));
+      }
     }
   }
 

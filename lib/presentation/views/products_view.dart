@@ -161,12 +161,6 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                   ),
                 ),
                 const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () => context.read<ProductBloc>().add(const LoadProducts()),
-                  icon: const Icon(Icons.refresh_rounded, size: 16),
-                  label: const Text('Refresh'),
-                ),
-                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () => _showAddEditProductModal(),
                   style: ElevatedButton.styleFrom(

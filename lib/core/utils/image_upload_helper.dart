@@ -15,7 +15,12 @@ class ImageUploadHelper {
   }) async {
     final repository = context.read<BhandarRepository>();
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 85,
+      );
       if (image == null) return null;
 
       onLoadingStateChanged?.call(true);

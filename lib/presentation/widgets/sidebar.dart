@@ -9,6 +9,8 @@ import '../../logic/theme/theme_event.dart';
 import '../../logic/theme/theme_state.dart';
 import '../../logic/products/product_bloc.dart';
 import '../../logic/products/product_state.dart';
+import '../../logic/orders/order_bloc.dart';
+import '../../logic/orders/order_state.dart';
 
 class Sidebar extends StatelessWidget {
   final String currentPath;
@@ -122,7 +124,7 @@ class Sidebar extends StatelessWidget {
                         children: [
                           if (!isCollapsed)
                             _buildSectionHeader(
-                              title: 'CATALOG MANAGEMENT',
+                              title: 'CATALOG & STORE',
                               isDark: isDark,
                             ),
 
@@ -136,6 +138,33 @@ class Sidebar extends StatelessWidget {
                             isCollapsed: isCollapsed,
                             primaryColor: primaryColor,
                             onTap: () => context.go(RoutePaths.products),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          if (!isCollapsed)
+                            _buildSectionHeader(
+                              title: 'SALES & FULFILLMENT',
+                              isDark: isDark,
+                            ),
+
+                          BlocBuilder<OrderBloc, OrderState>(
+                            builder: (context, orderState) {
+                              final isOrdersSelected = currentPath.startsWith(RoutePaths.orders);
+                              final pendingCount = orderState.pendingCount;
+
+                              return _buildNavItem(
+                                context,
+                                title: 'Orders',
+                                icon: Icons.receipt_long_outlined,
+                                activeIcon: Icons.receipt_long_rounded,
+                                isSelected: isOrdersSelected,
+                                badgeText: pendingCount > 0 ? '$pendingCount pending' : '${orderState.totalOrdersCount}',
+                                isCollapsed: isCollapsed,
+                                primaryColor: primaryColor,
+                                onTap: () => context.go(RoutePaths.orders),
+                              );
+                            },
                           ),
                         ],
                       );

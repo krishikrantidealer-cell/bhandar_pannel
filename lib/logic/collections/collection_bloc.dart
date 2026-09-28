@@ -16,12 +16,16 @@ class CollectionBloc extends Bloc<CollectionEvent, CollectionState> {
   }
 
   Future<void> _onLoadCollections(LoadCollections event, Emitter<CollectionState> emit) async {
-    emit(state.copyWith(status: CollectionStatus.loading));
+    if (state.collections.isEmpty) {
+      emit(state.copyWith(status: CollectionStatus.loading));
+    }
     try {
       final collections = await repository.getCollections();
       emit(state.copyWith(status: CollectionStatus.success, collections: collections));
     } catch (e) {
-      emit(state.copyWith(status: CollectionStatus.failure, errorMessage: e.toString()));
+      if (state.collections.isEmpty) {
+        emit(state.copyWith(status: CollectionStatus.failure, errorMessage: e.toString()));
+      }
     }
   }
 

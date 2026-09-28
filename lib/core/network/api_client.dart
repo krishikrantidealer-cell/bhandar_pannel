@@ -11,9 +11,19 @@ class ApiException implements Exception {
   String toString() => 'ApiException: $message (Status: $statusCode)';
 }
 
+class _CacheEntry {
+  final dynamic data;
+  final DateTime expiry;
+
+  _CacheEntry({required this.data, required this.expiry});
+
+  bool get isExpired => DateTime.now().isAfter(expiry);
+}
+
 class ApiClient {
   String baseUrl;
   String? authToken;
+  final Map<String, _CacheEntry> _cache = {};
 
   ApiClient({required this.baseUrl, this.authToken});
 
@@ -23,19 +33,50 @@ class ApiClient {
         if (authToken != null && authToken!.isNotEmpty) 'Authorization': 'Bearer $authToken',
       };
 
-  Future<dynamic> get(String endpoint) async {
+  /// Clears in-memory API cache. If prefix provided, clears matching endpoints.
+  void clearCache([String? endpointPrefix]) {
+    if (endpointPrefix == null) {
+      _cache.clear();
+    } else {
+      _cache.removeWhere((key, _) => key.startsWith(endpointPrefix));
+    }
+  }
+
+  Future<dynamic> get(
+    String endpoint, {
+    bool useCache = true,
+    Duration cacheDuration = const Duration(minutes: 2),
+  }) async {
+    if (useCache && _cache.containsKey(endpoint)) {
+      final entry = _cache[endpoint]!;
+      if (!entry.isExpired) {
+        return entry.data;
+      } else {
+        _cache.remove(endpoint);
+      }
+    }
+
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
       final response = await http.get(uri, headers: _headers).timeout(
             const Duration(seconds: 15),
           );
-      return _processResponse(response);
+      final result = _processResponse(response);
+      if (useCache && result != null) {
+        _cache[endpoint] = _CacheEntry(
+          data: result,
+          expiry: DateTime.now().add(cacheDuration),
+        );
+      }
+      return result;
     } catch (e) {
+      if (e is ApiException) rethrow;
       throw ApiException('Network error on GET $endpoint: $e');
     }
   }
 
   Future<dynamic> post(String endpoint, {Map<String, dynamic>? body}) async {
+    clearCache();
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
       final response = await http
@@ -47,11 +88,13 @@ class ApiClient {
           .timeout(const Duration(seconds: 15));
       return _processResponse(response);
     } catch (e) {
+      if (e is ApiException) rethrow;
       throw ApiException('Network error on POST $endpoint: $e');
     }
   }
 
   Future<dynamic> put(String endpoint, {Map<String, dynamic>? body}) async {
+    clearCache();
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
       final response = await http
@@ -63,11 +106,13 @@ class ApiClient {
           .timeout(const Duration(seconds: 15));
       return _processResponse(response);
     } catch (e) {
+      if (e is ApiException) rethrow;
       throw ApiException('Network error on PUT $endpoint: $e');
     }
   }
 
   Future<dynamic> delete(String endpoint) async {
+    clearCache();
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
       final response = await http.delete(uri, headers: _headers).timeout(
@@ -75,6 +120,7 @@ class ApiClient {
           );
       return _processResponse(response);
     } catch (e) {
+      if (e is ApiException) rethrow;
       throw ApiException('Network error on DELETE $endpoint: $e');
     }
   }

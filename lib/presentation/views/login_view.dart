@@ -625,6 +625,46 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                                                 ),
                                         ),
                                       ),
+
+                                      const SizedBox(height: 16),
+
+                                      // Default Admin Credential Hint
+                                      InkWell(
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap: () {
+                                          _identifierController.text = 'admin@krishibhandar.com';
+                                          _passwordController.text = 'password123';
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: isDark ? const Color(0xFF161E2E) : const Color(0xFFF1F5F9),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.vpn_key_outlined,
+                                                size: 14,
+                                                color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Default: admin@krishibhandar.com • password123',
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontSize: 11.5,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   );
                                 },

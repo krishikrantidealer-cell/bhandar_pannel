@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/network/api_client.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/bhandar_repository.dart';
 import 'auth_event.dart';
@@ -91,7 +92,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       repository.setAuthToken(user.token);
       emit(state.copyWith(status: AuthStatus.authenticated, currentUser: user));
     } catch (e) {
-      final cleanMsg = e.toString().replaceFirst('Exception: ', '');
+      String cleanMsg;
+      if (e is ApiException) {
+        cleanMsg = e.message;
+      } else {
+        cleanMsg = e.toString().replaceFirst('Exception: ', '').replaceFirst('ApiException: ', '');
+      }
       emit(state.copyWith(
         status: AuthStatus.unauthenticated,
         errorMessage: cleanMsg,

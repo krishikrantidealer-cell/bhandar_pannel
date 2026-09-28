@@ -535,12 +535,6 @@ class _CategoriesViewState extends State<CategoriesView> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                OutlinedButton.icon(
-                                  onPressed: () => context.read<CategoryBloc>().add(const LoadCategories()),
-                                  icon: const Icon(Icons.refresh_rounded, size: 16),
-                                  label: const Text('Refresh'),
-                                ),
-                                const SizedBox(width: 8),
                                 ElevatedButton.icon(
                                   onPressed: () => _showAddEditCategoryModal(),
                                   style: ElevatedButton.styleFrom(

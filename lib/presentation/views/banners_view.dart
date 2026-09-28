@@ -519,12 +519,6 @@ class _BannersViewState extends State<BannersView> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () => context.read<BannerBloc>().add(const LoadBanners()),
-                          icon: const Icon(Icons.refresh_rounded, size: 16),
-                          label: const Text('Refresh'),
-                        ),
-                        const SizedBox(width: 8),
                         ElevatedButton.icon(
                           onPressed: () => _showAddEditBannerModal(context, defaultType: 'home'),
                           style: ElevatedButton.styleFrom(

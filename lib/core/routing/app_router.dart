@@ -13,7 +13,7 @@ import '../../presentation/views/product_edit_view.dart';
 // import '../../presentation/views/categories_view.dart';
 // import '../../presentation/views/banners_view.dart';
 // import '../../presentation/views/coupons_view.dart';
-// import '../../presentation/views/orders_view.dart';
+import '../../presentation/views/orders_view.dart';
 // import '../../presentation/views/customization_view.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -101,6 +101,12 @@ class AppRouter {
             GoRoute(
               path: RoutePaths.banners,
               redirect: (context, state) => '${RoutePaths.products}?tab=3',
+            ),
+            GoRoute(
+              path: RoutePaths.orders,
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: OrdersView(),
+              ),
             ),
             GoRoute(
               path: RoutePaths.productNew,

@@ -16,12 +16,16 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   }
 
   Future<void> _onLoadCategories(LoadCategories event, Emitter<CategoryState> emit) async {
-    emit(state.copyWith(status: CategoryStatus.loading));
+    if (state.categories.isEmpty) {
+      emit(state.copyWith(status: CategoryStatus.loading));
+    }
     try {
       final categories = await repository.getCategories();
       emit(state.copyWith(status: CategoryStatus.success, categories: categories));
     } catch (e) {
-      emit(state.copyWith(status: CategoryStatus.failure, errorMessage: e.toString()));
+      if (state.categories.isEmpty) {
+        emit(state.copyWith(status: CategoryStatus.failure, errorMessage: e.toString()));
+      }
     }
   }
 

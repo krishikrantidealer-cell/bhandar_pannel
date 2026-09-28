@@ -1156,12 +1156,6 @@ class _CollectionsViewState extends State<CollectionsView> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () => context.read<CollectionBloc>().add(const LoadCollections()),
-                          icon: const Icon(Icons.refresh_rounded, size: 16),
-                          label: const Text('Refresh'),
-                        ),
-                        const SizedBox(width: 8),
                         ElevatedButton.icon(
                           onPressed: () => _showAddEditCollectionModal(),
                           style: ElevatedButton.styleFrom(
