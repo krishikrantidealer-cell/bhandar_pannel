@@ -11,6 +11,7 @@ class OrderItem {
   final String productId;
   final String title;
   final String? variantTitle;
+  final String? sku;
   final int quantity;
   final double unitPrice;
   final double totalAmount;
@@ -20,6 +21,7 @@ class OrderItem {
     required this.productId,
     required this.title,
     this.variantTitle,
+    this.sku,
     required this.quantity,
     required this.unitPrice,
     required this.totalAmount,
@@ -44,14 +46,23 @@ class OrderItem {
       tot = (json['totalAmount'] is num) ? (json['totalAmount'] as num).toDouble() : (double.tryParse(json['totalAmount']?.toString() ?? '0') ?? tot);
     }
 
+    final rawSku = (json['sku'] ?? json['variantSku'] ?? json['variant_sku'] ?? '').toString().trim();
+    final rawVariantTitle = (json['variantTitle'] ?? json['variant_title'] ?? json['option'] ?? '').toString().trim();
+
+    String? imageUrl = json['image'] ?? json['imageUrl'];
+    if (imageUrl == null && json['images'] is List && (json['images'] as List).isNotEmpty) {
+      imageUrl = json['images'][0]?.toString();
+    }
+
     return OrderItem(
-      productId: json['productId'] ?? json['product_id'] ?? json['id'] ?? '',
-      title: json['name'] ?? json['title'] ?? 'Item',
-      variantTitle: json['sku'] ?? json['variantTitle'] ?? json['variant_title'],
+      productId: (json['productId'] ?? json['product_id'] ?? json['id'] ?? '').toString(),
+      title: (json['name'] ?? json['title'] ?? 'Product Item').toString(),
+      variantTitle: rawVariantTitle.isNotEmpty ? rawVariantTitle : null,
+      sku: rawSku.isNotEmpty ? rawSku : (rawVariantTitle.isNotEmpty ? rawVariantTitle : null),
       quantity: qty,
       unitPrice: price,
       totalAmount: tot,
-      image: json['image'] ?? json['imageUrl'],
+      image: imageUrl,
     );
   }
 
@@ -60,7 +71,7 @@ class OrderItem {
         'name': title,
         'title': title,
         'variantTitle': variantTitle,
-        'sku': variantTitle,
+        'sku': sku,
         'quantity': quantity,
         'price': unitPrice,
         'unitPrice': unitPrice,
@@ -108,7 +119,7 @@ class OrderModel {
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     OrderStatus oStatus = OrderStatus.pending;
-    final s = (json['status'] ?? json['fulfillmentStatus'] ?? '').toString().toLowerCase();
+    final s = (json['status'] ?? json['orderStatus'] ?? json['fulfillmentStatus'] ?? '').toString().toLowerCase();
     if (s.contains('confirm')) {
       oStatus = OrderStatus.confirmed;
     } else if (s.contains('process')) {
@@ -119,6 +130,8 @@ class OrderModel {
       oStatus = OrderStatus.delivered;
     } else if (s.contains('cancel') || s.contains('refund')) {
       oStatus = OrderStatus.cancelled;
+    } else if (s.contains('pending')) {
+      oStatus = OrderStatus.pending;
     }
 
     List<OrderItem> itemsList = [];

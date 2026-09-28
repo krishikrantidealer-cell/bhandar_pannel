@@ -1,0 +1,13 @@
+services:
+  # Render Web Service deployment using Dockerfile
+  - type: web
+    name: bhandar-panel
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    healthCheckPath: /index.html
+    envVars:
+      - key: PORT
+        value: 80

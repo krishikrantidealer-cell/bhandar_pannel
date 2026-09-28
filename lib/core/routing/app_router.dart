@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'route_paths.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../models/product_model.dart';
+import '../../models/order_model.dart';
 import '../../presentation/widgets/app_shell.dart';
 import '../../presentation/views/login_view.dart';
 // import '../../presentation/views/dashboard_view.dart';
@@ -14,6 +15,7 @@ import '../../presentation/views/product_edit_view.dart';
 // import '../../presentation/views/banners_view.dart';
 // import '../../presentation/views/coupons_view.dart';
 import '../../presentation/views/orders_view.dart';
+import '../../presentation/views/order_details_view.dart';
 // import '../../presentation/views/customization_view.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -107,6 +109,19 @@ class AppRouter {
               pageBuilder: (context, state) => const NoTransitionPage(
                 child: OrdersView(),
               ),
+            ),
+            GoRoute(
+              path: RoutePaths.orderDetails,
+              pageBuilder: (context, state) {
+                final orderId = state.pathParameters['id'] ?? '';
+                final orderExtra = state.extra as OrderModel?;
+                return NoTransitionPage(
+                  child: OrderDetailsView(
+                    orderId: orderId,
+                    initialOrder: orderExtra,
+                  ),
+                );
+              },
             ),
             GoRoute(
               path: RoutePaths.productNew,

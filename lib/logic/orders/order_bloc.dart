@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/bhandar_repository.dart';
 import 'order_event.dart';
@@ -5,6 +6,7 @@ import 'order_state.dart';
 
 class OrderBloc extends Bloc<OrderEvent, OrderState> {
   final BhandarRepository repository;
+  Timer? _pollingTimer;
 
   OrderBloc({required this.repository}) : super(const OrderState()) {
     on<LoadOrders>(_onLoadOrders);
@@ -13,6 +15,17 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     on<UpdateOrderStatusEvent>(_onUpdateOrderStatus);
 
     add(const LoadOrders());
+
+    // Automatically poll every 10 seconds in the background so manual refresh is unnecessary
+    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      add(const LoadOrders(refresh: true));
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _pollingTimer?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoadOrders(LoadOrders event, Emitter<OrderState> emit) async {
@@ -47,16 +60,28 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onUpdateOrderStatus(UpdateOrderStatusEvent event, Emitter<OrderState> emit) async {
+    // Optimistically update the UI immediately
     final updatedList = state.orders.map((o) {
-      if (o.id == event.orderId) {
+      if (o.id == event.orderId || o.orderNumber == event.orderId) {
         return o.copyWith(status: event.newStatus);
       }
       return o;
     }).toList();
     emit(state.copyWith(orders: updatedList));
+
     try {
-      await repository.updateOrderStatus(event.orderId, event.newStatus.name);
-    } catch (_) {}
+      final updatedOrder = await repository.updateOrderStatus(event.orderId, event.newStatus.name);
+      final syncedList = state.orders.map((o) {
+        if (o.id == event.orderId || o.id == updatedOrder.id || o.orderNumber == event.orderId) {
+          return updatedOrder;
+        }
+        return o;
+      }).toList();
+      emit(state.copyWith(orders: syncedList));
+    } catch (e) {
+      // Re-fetch to guarantee consistency if server update failed
+      add(const LoadOrders(refresh: true));
+    }
   }
 }
 

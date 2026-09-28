@@ -19,7 +19,10 @@ class BannersView extends StatefulWidget {
   State<BannersView> createState() => _BannersViewState();
 }
 
-class _BannersViewState extends State<BannersView> {
+class _BannersViewState extends State<BannersView> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   int _selectedFilterIndex = 0; // 0: All, 1: Home Carousel, 2: Category, 3: Active Only
   final TextEditingController _searchController = TextEditingController();
 
@@ -437,6 +440,7 @@ class _BannersViewState extends State<BannersView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 

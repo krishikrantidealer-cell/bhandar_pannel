@@ -30,9 +30,6 @@ class ProductsView extends StatefulWidget {
 
 class _ProductsViewState extends State<ProductsView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
-  int _currentPage = 1;
-  int _pageSize = 20;
 
   @override
   void initState() {
@@ -50,6 +47,147 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
   @override
   void dispose() {
     _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return BlocBuilder<CategoryBloc, CategoryState>(
+          builder: (context, categoryState) {
+            return BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, productState) {
+                return BlocBuilder<CollectionBloc, CollectionState>(
+                  builder: (context, collectionState) {
+                    return BlocBuilder<BannerBloc, BannerState>(
+                      builder: (context, bannerState) {
+                        final productCount = productState.allProducts.length;
+                        final categoryCount = categoryState.categories.length;
+                        final collectionCount = collectionState.collections.length;
+                        final bannerCount = bannerState.banners.length;
+
+                        return Scaffold(
+                          backgroundColor: Colors.transparent,
+                          body: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Top Sub-Navigation Tab Bar with Smooth Hover Animations
+                              Container(
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      _HoverableTabButton(
+                                        icon: Icons.inventory_2_rounded,
+                                        title: 'Products',
+                                        count: productCount,
+                                        isSelected: _tabController.index == 0,
+                                        primaryColor: const Color(0xFF2563EB),
+                                        isDark: isDark,
+                                        onTap: () => _tabController.animateTo(0),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _HoverableTabButton(
+                                        icon: Icons.category_rounded,
+                                        title: 'Categories',
+                                        count: categoryCount,
+                                        isSelected: _tabController.index == 1,
+                                        primaryColor: const Color(0xFF059669),
+                                        isDark: isDark,
+                                        onTap: () => _tabController.animateTo(1),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _HoverableTabButton(
+                                        icon: Icons.collections_bookmark_rounded,
+                                        title: 'Collections & Crops',
+                                        count: collectionCount,
+                                        isSelected: _tabController.index == 2,
+                                        primaryColor: const Color(0xFF7C3AED),
+                                        isDark: isDark,
+                                        onTap: () => _tabController.animateTo(2),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _HoverableTabButton(
+                                        icon: Icons.view_carousel_rounded,
+                                        title: 'Banners & Promotions',
+                                        count: bannerCount,
+                                        isSelected: _tabController.index == 3,
+                                        primaryColor: const Color(0xFFD97706),
+                                        isDark: isDark,
+                                        onTap: () => _tabController.animateTo(3),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              // Tab Views Content
+                              Expanded(
+                                child: TabBarView(
+                                  controller: _tabController,
+                                  children: const [
+                                    // 1. Products Tab (Preserved state with AutomaticKeepAlive)
+                                    _ProductCatalogTab(),
+
+                                    // 2. Categories Tab
+                                    CategoriesView(isEmbedded: true),
+
+                                    // 3. Collection Tab
+                                    CollectionsView(isEmbedded: true),
+
+                                    // 4. Banners Tab
+                                    BannersView(isEmbedded: true),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ProductCatalogTab extends StatefulWidget {
+  const _ProductCatalogTab();
+
+  @override
+  State<_ProductCatalogTab> createState() => _ProductCatalogTabState();
+}
+
+class _ProductCatalogTabState extends State<_ProductCatalogTab> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  final TextEditingController _searchController = TextEditingController();
+  int _currentPage = 1;
+  int _pageSize = 20;
+
+  @override
+  void dispose() {
     _searchController.dispose();
     super.dispose();
   }
@@ -90,13 +228,18 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildProductTab(
-    BuildContext context,
-    ThemeState themeState,
-    bool isDark,
-    ProductState productState,
-    CategoryState categoryState,
-  ) {
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return BlocBuilder<CategoryBloc, CategoryState>(
+          builder: (context, categoryState) {
+            return BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, productState) {
     final products = productState.getFilteredProducts(categoryState.categories);
     final totalItems = products.length;
     final totalPages = (totalItems / _pageSize).ceil().clamp(1, 999999);
@@ -797,207 +940,159 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
         ],
       ),
     );
-  }
-
-  Widget _buildTabItem({
-    required IconData icon,
-    required String title,
-    required int count,
-    required bool isSelected,
-    required Color primaryColor,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      hoverColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? primaryColor.withValues(alpha: isDark ? 0.14 : 0.08)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-          border: isSelected
-              ? Border.all(color: primaryColor.withValues(alpha: isDark ? 0.35 : 0.25), width: 1)
-              : Border.all(color: Colors.transparent, width: 1),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected ? primaryColor : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-            ),
-            const SizedBox(width: 7),
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                fontSize: 13,
-                color: isSelected
-                    ? (isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A))
-                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
-                letterSpacing: -0.2,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? primaryColor.withValues(alpha: 0.16)
-                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isSelected
-                      ? primaryColor.withValues(alpha: 0.3)
-                      : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                  width: 0.7,
-                ),
-              ),
-              child: Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                  color: isSelected
-                      ? primaryColor
-                      : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return BlocBuilder<ThemeBloc, ThemeState>(
-      builder: (context, themeState) {
-        return BlocBuilder<CategoryBloc, CategoryState>(
-          builder: (context, categoryState) {
-            return BlocBuilder<ProductBloc, ProductState>(
-              builder: (context, productState) {
-                return BlocBuilder<CollectionBloc, CollectionState>(
-                  builder: (context, collectionState) {
-                    return BlocBuilder<BannerBloc, BannerState>(
-                      builder: (context, bannerState) {
-                        final productCount = productState.allProducts.length;
-                        final categoryCount = categoryState.categories.length;
-                        final collectionCount = collectionState.collections.length;
-                        final bannerCount = bannerState.banners.length;
-
-                        return Scaffold(
-                          backgroundColor: Colors.transparent,
-                          body: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // Top Sub-Navigation Tab Bar
-                              Container(
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      _buildTabItem(
-                                        icon: Icons.inventory_2_rounded,
-                                        title: 'Products',
-                                        count: productCount,
-                                        isSelected: _tabController.index == 0,
-                                        primaryColor: const Color(0xFF2563EB),
-                                        isDark: isDark,
-                                        onTap: () => _tabController.animateTo(0),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      _buildTabItem(
-                                        icon: Icons.category_rounded,
-                                        title: 'Categories',
-                                        count: categoryCount,
-                                        isSelected: _tabController.index == 1,
-                                        primaryColor: const Color(0xFF059669),
-                                        isDark: isDark,
-                                        onTap: () => _tabController.animateTo(1),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      _buildTabItem(
-                                        icon: Icons.collections_bookmark_rounded,
-                                        title: 'Collections & Crops',
-                                        count: collectionCount,
-                                        isSelected: _tabController.index == 2,
-                                        primaryColor: const Color(0xFF7C3AED),
-                                        isDark: isDark,
-                                        onTap: () => _tabController.animateTo(2),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      _buildTabItem(
-                                        icon: Icons.view_carousel_rounded,
-                                        title: 'Banners & Promotions',
-                                        count: bannerCount,
-                                        isSelected: _tabController.index == 3,
-                                        primaryColor: const Color(0xFFD97706),
-                                        isDark: isDark,
-                                        onTap: () => _tabController.animateTo(3),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-
-                              // Tab Views Content
-                              Expanded(
-                                child: TabBarView(
-                                  controller: _tabController,
-                                  children: [
-                                    // 1. Products Tab
-                                    _buildProductTab(
-                                      context,
-                                      themeState,
-                                      isDark,
-                                      productState,
-                                      categoryState,
-                                    ),
-
-                                    // 2. Categories Tab
-                                    const CategoriesView(isEmbedded: true),
-
-                                    // 3. Collection Tab
-                                    const CollectionsView(isEmbedded: true),
-
-                                    // 4. Banners Tab
-                                    const BannersView(isEmbedded: true),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
               },
             );
           },
         );
       },
+    );
+  }
+}
+
+class _HoverableTabButton extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final int count;
+  final bool isSelected;
+  final Color primaryColor;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _HoverableTabButton({
+    required this.icon,
+    required this.title,
+    required this.count,
+    required this.isSelected,
+    required this.primaryColor,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  State<_HoverableTabButton> createState() => _HoverableTabButtonState();
+}
+
+class _HoverableTabButtonState extends State<_HoverableTabButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor = widget.isSelected
+        ? widget.primaryColor
+        : (_isHovered
+            ? (widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A))
+            : (widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)));
+
+    final effectiveBgColor = widget.isSelected
+        ? widget.primaryColor.withValues(alpha: widget.isDark ? 0.16 : 0.10)
+        : (_isHovered
+            ? (widget.isDark
+                ? widget.primaryColor.withValues(alpha: 0.08)
+                : widget.primaryColor.withValues(alpha: 0.05))
+            : Colors.transparent);
+
+    final effectiveBorderColor = widget.isSelected
+        ? widget.primaryColor.withValues(alpha: widget.isDark ? 0.45 : 0.35)
+        : (_isHovered
+            ? widget.primaryColor.withValues(alpha: 0.25)
+            : Colors.transparent);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered ? 1.025 : 1.0,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: effectiveBgColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: effectiveBorderColor, width: 1.2),
+            boxShadow: (_isHovered || widget.isSelected)
+                ? [
+                    BoxShadow(
+                      color: widget.primaryColor.withValues(alpha: widget.isSelected ? 0.18 : 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: widget.onTap,
+              borderRadius: BorderRadius.circular(8),
+              splashColor: widget.primaryColor.withValues(alpha: 0.15),
+              highlightColor: widget.primaryColor.withValues(alpha: 0.08),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: (widget.isSelected || _isHovered)
+                          ? widget.primaryColor.withValues(alpha: widget.isSelected ? 0.18 : 0.10)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      widget.icon,
+                      size: 16,
+                      color: (widget.isSelected || _isHovered) ? widget.primaryColor : effectiveColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontWeight: widget.isSelected ? FontWeight.w700 : (_isHovered ? FontWeight.w600 : FontWeight.w500),
+                      fontSize: 13,
+                      color: effectiveColor,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: widget.isSelected
+                          ? widget.primaryColor.withValues(alpha: 0.20)
+                          : (_isHovered
+                              ? widget.primaryColor.withValues(alpha: 0.12)
+                              : (widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: (widget.isSelected || _isHovered)
+                            ? widget.primaryColor.withValues(alpha: 0.35)
+                            : (widget.isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Text(
+                      '${widget.count}',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: (widget.isSelected || _isHovered)
+                            ? widget.primaryColor
+                            : (widget.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

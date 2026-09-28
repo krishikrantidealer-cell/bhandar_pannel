@@ -283,7 +283,11 @@ class BhandarApiService {
   }
 
   Future<OrderModel> updateOrderStatus(String id, String status) async {
-    final response = await apiClient.put('/api/orders/$id', body: {'orderStatus': status});
+    final cleanStatus = status.toLowerCase();
+    final response = await apiClient.put('/api/orders/$id', body: {
+      'status': cleanStatus,
+      'orderStatus': cleanStatus,
+    });
     if (response is Map) {
       final resData = response['order'] ?? response['data'] ?? response;
       return OrderModel.fromJson(Map<String, dynamic>.from(resData));

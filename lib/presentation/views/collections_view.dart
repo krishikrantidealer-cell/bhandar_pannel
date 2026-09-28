@@ -22,7 +22,10 @@ class CollectionsView extends StatefulWidget {
   State<CollectionsView> createState() => _CollectionsViewState();
 }
 
-class _CollectionsViewState extends State<CollectionsView> {
+class _CollectionsViewState extends State<CollectionsView>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -1091,6 +1094,7 @@ class _CollectionsViewState extends State<CollectionsView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 

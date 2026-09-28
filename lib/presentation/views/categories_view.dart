@@ -24,7 +24,10 @@ class CategoriesView extends StatefulWidget {
   State<CategoriesView> createState() => _CategoriesViewState();
 }
 
-class _CategoriesViewState extends State<CategoriesView> {
+class _CategoriesViewState extends State<CategoriesView>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   void _showAddEditCategoryModal({CategoryModel? existingCategory}) {
     final nameController = TextEditingController(text: existingCategory?.name ?? '');
     final slugController = TextEditingController(text: existingCategory?.slug ?? '');
@@ -475,6 +478,7 @@ class _CategoriesViewState extends State<CategoriesView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
