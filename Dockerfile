@@ -7,14 +7,11 @@ FROM ghcr.io/cirruslabs/flutter:stable AS build
 
 WORKDIR /app
 
-# Copy dependency manifests first for build caching
-COPY pubspec.yaml pubspec.lock ./
-RUN flutter pub get
-
 # Copy full source tree
 COPY . .
 
-# Build release web bundle with HTML renderer / CanvasKit
+# Resolve packages & build web bundle
+RUN flutter pub get
 RUN flutter build web --release --pwa-strategy=none
 
 # -----------------------------------------------------------
