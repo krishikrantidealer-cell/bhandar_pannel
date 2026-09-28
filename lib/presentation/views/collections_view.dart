@@ -388,7 +388,7 @@ class _CollectionsViewState extends State<CollectionsView>
                           )
                         : ListView.separated(
                             itemCount: filteredProducts.length,
-                            separatorBuilder: (_, _) => const Divider(height: 1),
+                            separatorBuilder: (context, index) => const Divider(height: 1),
                             itemBuilder: (ctx, idx) {
                               final p = filteredProducts[idx];
                               final isSelected = selectedIds.contains(p.id);
