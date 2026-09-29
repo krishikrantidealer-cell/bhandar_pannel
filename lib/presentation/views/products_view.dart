@@ -981,25 +981,25 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
     final FontWeight fontWeight;
 
     if (widget.isSelected) {
-      // Selected State: Solid Dark Slate / Dark Grey
+      // Selected State: Solid Active Grey / Dark Slate
       textColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
       iconColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
-      bgColor = widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+      bgColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
       borderColor = widget.isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1);
-      countBgColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+      countBgColor = widget.isDark ? const Color(0xFF1E293B) : Colors.white;
       countTextColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
       fontWeight = FontWeight.w700;
     } else if (_isHovered) {
-      // Hover State: Subtle Light/Dark Grey Wash
-      textColor = widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
-      iconColor = widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
-      bgColor = widget.isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF8FAFC);
+      // Hover State: Simple Light Grey
+      textColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1E293B);
+      iconColor = widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155);
+      bgColor = widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
       borderColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-      countBgColor = widget.isDark ? const Color(0xFF334155).withValues(alpha: 0.8) : const Color(0xFFE2E8F0);
-      countTextColor = widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155);
+      countBgColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+      countTextColor = widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569);
       fontWeight = FontWeight.w600;
     } else {
-      // Normal Inactive State: Clean Muted Grey
+      // Normal Inactive State: Transparent & Muted Grey
       textColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
       iconColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
       bgColor = Colors.transparent;
