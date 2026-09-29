@@ -12,7 +12,6 @@ import '../../logic/theme/theme_bloc.dart';
 import '../../logic/theme/theme_state.dart';
 import '../../models/order_model.dart';
 import '../widgets/image_preview.dart';
-import '../widgets/status_badge.dart';
 
 class OrderDetailsView extends StatefulWidget {
   final String orderId;
@@ -64,41 +63,29 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
   }
 
   Color _getStatusColor(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.confirmed:
-        return const Color(0xFF3B82F6);
-      case OrderStatus.processing:
-        return const Color(0xFFF59E0B);
-      case OrderStatus.shipped:
-        return const Color(0xFF8B5CF6);
-      case OrderStatus.delivered:
-        return const Color(0xFF10B981);
-      case OrderStatus.cancelled:
-        return const Color(0xFFEF4444);
-      case OrderStatus.pending:
-        return const Color(0xFF64748B);
-    }
+    return status.badgeFg == Colors.white ? status.badgeBg : status.badgeFg;
   }
 
   Widget _buildStatusBadge(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.confirmed:
-        return StatusBadge.info('Confirmed');
-      case OrderStatus.processing:
-        return StatusBadge.warning('Processing');
-      case OrderStatus.shipped:
-        return const StatusBadge(
-          label: 'Shipped',
-          color: Color(0xFF8B5CF6),
-          icon: Icons.local_shipping_outlined,
-        );
-      case OrderStatus.delivered:
-        return StatusBadge.success('Delivered');
-      case OrderStatus.cancelled:
-        return StatusBadge.danger('Cancelled');
-      case OrderStatus.pending:
-        return StatusBadge.neutral('Pending');
-    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: status.badgeBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: status.badgeFg.withValues(alpha: 0.25),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        status.label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: status.badgeFg,
+        ),
+      ),
+    );
   }
 
   @override
@@ -712,32 +699,46 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
             runSpacing: 8,
             children: OrderStatus.values.map((status) {
               final isSelected = order.status == status;
-              final color = _getStatusColor(status);
 
-              return FilterChip(
-                label: Text(
-                  status.name.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
-                  ),
-                ),
-                selected: isSelected,
-                selectedColor: color,
-                checkmarkColor: Colors.white,
-                backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  side: BorderSide(
-                    color: isSelected ? color : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                  ),
-                ),
-                onSelected: (selected) {
-                  if (selected && !isSelected) {
+              return InkWell(
+                onTap: () {
+                  if (!isSelected) {
                     _updateStatus(order, status);
                   }
                 },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected ? status.badgeBg : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9)),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected
+                          ? status.badgeFg
+                          : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                      width: isSelected ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isSelected) ...[
+                        Icon(Icons.check_rounded, size: 14, color: status.badgeFg),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        status.label,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          color: isSelected
+                              ? status.badgeFg
+                              : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }).toList(),
           ),

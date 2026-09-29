@@ -10,7 +10,6 @@ import '../../logic/dashboard/dashboard_bloc.dart';
 import '../../logic/dashboard/dashboard_state.dart';
 import '../../models/order_model.dart';
 import '../widgets/stat_card.dart';
-import '../widgets/status_badge.dart';
 import '../widgets/shimmer_loading.dart';
 
 class DashboardView extends StatelessWidget {
@@ -534,27 +533,26 @@ class DashboardView extends StatelessWidget {
               )
             else
               ...recent.map((order) {
-                StatusBadge badge;
-                switch (order.status) {
-                  case OrderStatus.confirmed:
-                    badge = StatusBadge.success('Confirmed');
-                    break;
-                  case OrderStatus.processing:
-                    badge = StatusBadge.warning('Processing');
-                    break;
-                  case OrderStatus.shipped:
-                    badge = StatusBadge.info('Shipped');
-                    break;
-                  case OrderStatus.delivered:
-                    badge = StatusBadge.success('Delivered');
-                    break;
-                  case OrderStatus.cancelled:
-                    badge = StatusBadge.danger('Cancelled');
-                    break;
-                  case OrderStatus.pending:
-                    badge = StatusBadge.neutral('Pending');
-                    break;
-                }
+                final status = order.status;
+                final statusBadge = Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: status.badgeBg,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: status.badgeFg.withValues(alpha: 0.25),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    status.label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: status.badgeFg,
+                    ),
+                  ),
+                );
 
                 return Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -599,7 +597,7 @@ class DashboardView extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
                       ),
                       const SizedBox(width: 16),
-                      badge,
+                      statusBadge,
                     ],
                   ),
                 );

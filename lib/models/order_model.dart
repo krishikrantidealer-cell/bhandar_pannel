@@ -1,10 +1,191 @@
+import 'package:flutter/material.dart';
+
 enum OrderStatus {
-  pending,
+  notConfirmed,
   confirmed,
-  processing,
   shipped,
+  rackUp,
+  inTransit,
+  outForDelivery,
   delivered,
+  rtoInTransit,
+  rtoDelivered,
+  hold,
+  delayed,
+  lost,
   cancelled,
+}
+
+extension OrderStatusX on OrderStatus {
+  String get label {
+    switch (this) {
+      case OrderStatus.notConfirmed:
+        return 'Not Confirmed';
+      case OrderStatus.confirmed:
+        return 'Confirmed';
+      case OrderStatus.shipped:
+        return 'Shipped';
+      case OrderStatus.rackUp:
+        return 'Rack Up';
+      case OrderStatus.inTransit:
+        return 'In-Transit';
+      case OrderStatus.outForDelivery:
+        return 'Out for Delivery';
+      case OrderStatus.delivered:
+        return 'Delivered';
+      case OrderStatus.rtoInTransit:
+        return 'RTO In-Transit';
+      case OrderStatus.rtoDelivered:
+        return 'RTO Delivered';
+      case OrderStatus.hold:
+        return 'Hold';
+      case OrderStatus.delayed:
+        return 'Delayed';
+      case OrderStatus.lost:
+        return 'Lost';
+      case OrderStatus.cancelled:
+        return 'Cancelled';
+    }
+  }
+
+  String get apiValue {
+    switch (this) {
+      case OrderStatus.notConfirmed:
+        return 'not_confirmed';
+      case OrderStatus.confirmed:
+        return 'confirmed';
+      case OrderStatus.shipped:
+        return 'shipped';
+      case OrderStatus.rackUp:
+        return 'rack_up';
+      case OrderStatus.inTransit:
+        return 'in_transit';
+      case OrderStatus.outForDelivery:
+        return 'out_for_delivery';
+      case OrderStatus.delivered:
+        return 'delivered';
+      case OrderStatus.rtoInTransit:
+        return 'rto_in_transit';
+      case OrderStatus.rtoDelivered:
+        return 'rto_delivered';
+      case OrderStatus.hold:
+        return 'hold';
+      case OrderStatus.delayed:
+        return 'delayed';
+      case OrderStatus.lost:
+        return 'lost';
+      case OrderStatus.cancelled:
+        return 'cancelled';
+    }
+  }
+
+  Color get badgeBg {
+    switch (this) {
+      case OrderStatus.notConfirmed:
+        return const Color(0xFFFCEAE6);
+      case OrderStatus.confirmed:
+        return const Color(0xFFE2F0D9);
+      case OrderStatus.shipped:
+        return const Color(0xFFD9E8FB);
+      case OrderStatus.rackUp:
+        return const Color(0xFFD1E1EB);
+      case OrderStatus.inTransit:
+        return const Color(0xFFFCF0D3);
+      case OrderStatus.outForDelivery:
+        return const Color(0xFF8A1C14);
+      case OrderStatus.delivered:
+        return const Color(0xFF38761D);
+      case OrderStatus.rtoInTransit:
+        return const Color(0xFF3F606F);
+      case OrderStatus.rtoDelivered:
+        return const Color(0xFFE1D5E7);
+      case OrderStatus.hold:
+        return const Color(0xFF4A86E8);
+      case OrderStatus.delayed:
+        return const Color(0xFFE69138);
+      case OrderStatus.lost:
+        return const Color(0xFFD9EAD3);
+      case OrderStatus.cancelled:
+        return const Color(0xFFF8CECC);
+    }
+  }
+
+  Color get badgeFg {
+    switch (this) {
+      case OrderStatus.notConfirmed:
+        return const Color(0xFF9C4221);
+      case OrderStatus.confirmed:
+        return const Color(0xFF2E7D32);
+      case OrderStatus.shipped:
+        return const Color(0xFF1565C0);
+      case OrderStatus.rackUp:
+        return const Color(0xFF37474F);
+      case OrderStatus.inTransit:
+        return const Color(0xFFD97706);
+      case OrderStatus.outForDelivery:
+        return Colors.white;
+      case OrderStatus.delivered:
+        return Colors.white;
+      case OrderStatus.rtoInTransit:
+        return Colors.white;
+      case OrderStatus.rtoDelivered:
+        return const Color(0xFF6B21A8);
+      case OrderStatus.hold:
+        return Colors.white;
+      case OrderStatus.delayed:
+        return Colors.white;
+      case OrderStatus.lost:
+        return const Color(0xFF365314);
+      case OrderStatus.cancelled:
+        return const Color(0xFF991B1B);
+    }
+  }
+
+  static OrderStatus fromString(String? val) {
+    if (val == null || val.isEmpty) return OrderStatus.notConfirmed;
+    final s = val.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_');
+    switch (s) {
+      case 'not_confirmed':
+      case 'pending':
+        return OrderStatus.notConfirmed;
+      case 'confirmed':
+      case 'processing':
+        return OrderStatus.confirmed;
+      case 'shipped':
+        return OrderStatus.shipped;
+      case 'rack_up':
+      case 'rackup':
+        return OrderStatus.rackUp;
+      case 'in_transit':
+      case 'intransit':
+        return OrderStatus.inTransit;
+      case 'out_for_delivery':
+      case 'outfordelivery':
+        return OrderStatus.outForDelivery;
+      case 'delivered':
+      case 'completed':
+        return OrderStatus.delivered;
+      case 'rto_in_transit':
+      case 'rtointransit':
+        return OrderStatus.rtoInTransit;
+      case 'rto_delivered':
+      case 'rtodelivered':
+        return OrderStatus.rtoDelivered;
+      case 'hold':
+      case 'on_hold':
+        return OrderStatus.hold;
+      case 'delayed':
+        return OrderStatus.delayed;
+      case 'lost':
+        return OrderStatus.lost;
+      case 'cancelled':
+      case 'canceled':
+      case 'refunded':
+        return OrderStatus.cancelled;
+      default:
+        return OrderStatus.notConfirmed;
+    }
+  }
 }
 
 class OrderItem {
@@ -136,27 +317,14 @@ class OrderModel {
     required this.totalAmount,
     this.paymentMethod = 'Online / Razorpay',
     this.paymentStatus = 'Paid',
-    this.status = OrderStatus.pending,
+    this.status = OrderStatus.notConfirmed,
     required this.createdAt,
     this.deliveredAt,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    OrderStatus oStatus = OrderStatus.pending;
-    final s = (json['status'] ?? json['orderStatus'] ?? json['fulfillmentStatus'] ?? '').toString().toLowerCase();
-    if (s.contains('confirm')) {
-      oStatus = OrderStatus.confirmed;
-    } else if (s.contains('process')) {
-      oStatus = OrderStatus.processing;
-    } else if (s.contains('ship')) {
-      oStatus = OrderStatus.shipped;
-    } else if (s.contains('deliver') || s.contains('complete')) {
-      oStatus = OrderStatus.delivered;
-    } else if (s.contains('cancel') || s.contains('refund')) {
-      oStatus = OrderStatus.cancelled;
-    } else if (s.contains('pending')) {
-      oStatus = OrderStatus.pending;
-    }
+    final rawStatus = (json['status'] ?? json['orderStatus'] ?? json['fulfillmentStatus'] ?? '').toString();
+    final oStatus = OrderStatusX.fromString(rawStatus);
 
     List<OrderItem> itemsList = [];
     final rawItems = json['lineItems'] ?? json['items'];

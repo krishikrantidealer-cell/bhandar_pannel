@@ -9,7 +9,6 @@ import '../../logic/theme/theme_bloc.dart';
 import '../../logic/theme/theme_state.dart';
 import '../../models/order_model.dart';
 import '../widgets/custom_table.dart';
-import '../widgets/status_badge.dart';
 import '../widgets/image_preview.dart';
 
 class OrdersView extends StatefulWidget {
@@ -41,29 +40,16 @@ class _OrdersViewState extends State<OrdersView> {
     );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Order ${order.orderNumber} status changed to ${newStatus.name.toUpperCase()}'),
+        content: Text('Order ${order.orderNumber} status changed to ${newStatus.label}'),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: _getStatusColor(newStatus),
+        backgroundColor: newStatus.badgeFg == Colors.white ? newStatus.badgeBg : newStatus.badgeFg,
       ),
     );
   }
 
   Color _getStatusColor(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.confirmed:
-        return const Color(0xFF3B82F6);
-      case OrderStatus.processing:
-        return const Color(0xFFF59E0B);
-      case OrderStatus.shipped:
-        return const Color(0xFF8B5CF6);
-      case OrderStatus.delivered:
-        return const Color(0xFF10B981);
-      case OrderStatus.cancelled:
-        return const Color(0xFFEF4444);
-      case OrderStatus.pending:
-        return const Color(0xFF64748B);
-    }
+    return status.badgeFg == Colors.white ? status.badgeBg : status.badgeFg;
   }
 
   Widget _buildInteractiveStatusCell(BuildContext context, OrderModel order, bool isDark) {
@@ -71,44 +57,43 @@ class _OrdersViewState extends State<OrdersView> {
       tooltip: 'Click to change order status',
       initialValue: order.status,
       onSelected: (newStatus) => _handleStatusChange(context, order, newStatus),
-      offset: const Offset(0, 30),
+      offset: const Offset(0, 32),
       color: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         side: BorderSide(
           color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
       ),
       itemBuilder: (context) => OrderStatus.values.map((status) {
-        final color = _getStatusColor(status);
         final isCurrent = order.status == status;
         return PopupMenuItem<OrderStatus>(
           value: status,
-          height: 36,
+          height: 38,
           child: Row(
             children: [
               Container(
-                width: 8,
-                height: 8,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
+                  color: status.badgeBg,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: status.badgeFg.withValues(alpha: 0.25),
+                    width: 0.8,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                status.name.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                  color: isCurrent
-                      ? color
-                      : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B)),
+                child: Text(
+                  status.label,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: status.badgeFg,
+                  ),
                 ),
               ),
               if (isCurrent) ...[
                 const Spacer(),
-                Icon(Icons.check_rounded, size: 14, color: color),
+                Icon(Icons.check_rounded, size: 15, color: _getStatusColor(status)),
               ],
             ],
           ),
@@ -120,10 +105,10 @@ class _OrdersViewState extends State<OrdersView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildStatusBadge(order.status),
-            const SizedBox(width: 2),
+            const SizedBox(width: 3),
             Icon(
               Icons.arrow_drop_down_rounded,
-              size: 16,
+              size: 17,
               color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
             ),
           ],
@@ -133,24 +118,25 @@ class _OrdersViewState extends State<OrdersView> {
   }
 
   Widget _buildStatusBadge(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.confirmed:
-        return StatusBadge.info('Confirmed');
-      case OrderStatus.processing:
-        return StatusBadge.warning('Processing');
-      case OrderStatus.shipped:
-        return const StatusBadge(
-          label: 'Shipped',
-          color: Color(0xFF8B5CF6),
-          icon: Icons.local_shipping_outlined,
-        );
-      case OrderStatus.delivered:
-        return StatusBadge.success('Delivered');
-      case OrderStatus.cancelled:
-        return StatusBadge.danger('Cancelled');
-      case OrderStatus.pending:
-        return StatusBadge.neutral('Pending');
-    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: status.badgeBg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: status.badgeFg.withValues(alpha: 0.25),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        status.label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: status.badgeFg,
+        ),
+      ),
+    );
   }
 
   Widget _buildKpiCard({
@@ -466,78 +452,23 @@ class _OrdersViewState extends State<OrdersView> {
                                   context.read<OrderBloc>().add(const FilterOrdersByStatus(null));
                                 },
                               ),
-                              const SizedBox(width: 8),
-                              _buildStatusFilterChip(
-                                label: 'Pending',
-                                count: orderState.pendingCount,
-                                isSelected: orderState.statusFilter == OrderStatus.pending,
-                                primaryColor: const Color(0xFF64748B),
-                                isDark: isDark,
-                                onTap: () {
-                                  setState(() => _currentPage = 1);
-                                  context.read<OrderBloc>().add(const FilterOrdersByStatus(OrderStatus.pending));
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _buildStatusFilterChip(
-                                label: 'Confirmed',
-                                count: orderState.confirmedCount,
-                                isSelected: orderState.statusFilter == OrderStatus.confirmed,
-                                primaryColor: const Color(0xFF3B82F6),
-                                isDark: isDark,
-                                onTap: () {
-                                  setState(() => _currentPage = 1);
-                                  context.read<OrderBloc>().add(const FilterOrdersByStatus(OrderStatus.confirmed));
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _buildStatusFilterChip(
-                                label: 'Processing',
-                                count: orderState.processingCount,
-                                isSelected: orderState.statusFilter == OrderStatus.processing,
-                                primaryColor: const Color(0xFFF59E0B),
-                                isDark: isDark,
-                                onTap: () {
-                                  setState(() => _currentPage = 1);
-                                  context.read<OrderBloc>().add(const FilterOrdersByStatus(OrderStatus.processing));
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _buildStatusFilterChip(
-                                label: 'Shipped',
-                                count: orderState.shippedCount,
-                                isSelected: orderState.statusFilter == OrderStatus.shipped,
-                                primaryColor: const Color(0xFF8B5CF6),
-                                isDark: isDark,
-                                onTap: () {
-                                  setState(() => _currentPage = 1);
-                                  context.read<OrderBloc>().add(const FilterOrdersByStatus(OrderStatus.shipped));
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _buildStatusFilterChip(
-                                label: 'Delivered',
-                                count: orderState.deliveredCount,
-                                isSelected: orderState.statusFilter == OrderStatus.delivered,
-                                primaryColor: const Color(0xFF10B981),
-                                isDark: isDark,
-                                onTap: () {
-                                  setState(() => _currentPage = 1);
-                                  context.read<OrderBloc>().add(const FilterOrdersByStatus(OrderStatus.delivered));
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _buildStatusFilterChip(
-                                label: 'Cancelled',
-                                count: orderState.cancelledCount,
-                                isSelected: orderState.statusFilter == OrderStatus.cancelled,
-                                primaryColor: const Color(0xFFEF4444),
-                                isDark: isDark,
-                                onTap: () {
-                                  setState(() => _currentPage = 1);
-                                  context.read<OrderBloc>().add(const FilterOrdersByStatus(OrderStatus.cancelled));
-                                },
-                              ),
+                              ...OrderStatus.values.map((status) {
+                                final count = orderState.countByStatus(status);
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: _buildStatusFilterChip(
+                                    label: status.label,
+                                    count: count,
+                                    isSelected: orderState.statusFilter == status,
+                                    primaryColor: _getStatusColor(status),
+                                    isDark: isDark,
+                                    onTap: () {
+                                      setState(() => _currentPage = 1);
+                                      context.read<OrderBloc>().add(FilterOrdersByStatus(status));
+                                    },
+                                  ),
+                                );
+                              }),
                             ],
                           ),
                         ),

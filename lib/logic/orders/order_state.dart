@@ -53,12 +53,22 @@ class OrderState extends Equatable {
       .where((o) => o.status != OrderStatus.cancelled)
       .fold(0.0, (sum, o) => sum + o.totalAmount);
 
-  int get pendingCount => orders.where((o) => o.status == OrderStatus.pending).length;
-  int get confirmedCount => orders.where((o) => o.status == OrderStatus.confirmed).length;
-  int get processingCount => orders.where((o) => o.status == OrderStatus.processing).length;
-  int get shippedCount => orders.where((o) => o.status == OrderStatus.shipped).length;
-  int get deliveredCount => orders.where((o) => o.status == OrderStatus.delivered).length;
-  int get cancelledCount => orders.where((o) => o.status == OrderStatus.cancelled).length;
+  int countByStatus(OrderStatus s) => orders.where((o) => o.status == s).length;
+  int get notConfirmedCount => countByStatus(OrderStatus.notConfirmed);
+  int get pendingCount => notConfirmedCount;
+  int get confirmedCount => countByStatus(OrderStatus.confirmed);
+  int get processingCount => confirmedCount;
+  int get shippedCount => countByStatus(OrderStatus.shipped);
+  int get rackUpCount => countByStatus(OrderStatus.rackUp);
+  int get inTransitCount => countByStatus(OrderStatus.inTransit);
+  int get outForDeliveryCount => countByStatus(OrderStatus.outForDelivery);
+  int get deliveredCount => countByStatus(OrderStatus.delivered);
+  int get rtoInTransitCount => countByStatus(OrderStatus.rtoInTransit);
+  int get rtoDeliveredCount => countByStatus(OrderStatus.rtoDelivered);
+  int get holdCount => countByStatus(OrderStatus.hold);
+  int get delayedCount => countByStatus(OrderStatus.delayed);
+  int get lostCount => countByStatus(OrderStatus.lost);
+  int get cancelledCount => countByStatus(OrderStatus.cancelled);
 
   OrderState copyWith({
     OrderStateStatus? status,
