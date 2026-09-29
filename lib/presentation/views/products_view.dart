@@ -977,118 +977,101 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = widget.isSelected
-        ? widget.primaryColor
-        : (_isHovered
-            ? (widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A))
-            : (widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)));
+    // ── Color Resolvers for Simple & Professional SaaS Aesthetic ──────────────
+    final Color textColor;
+    final Color iconColor;
+    final Color bgColor;
+    final Color borderColor;
+    final Color countBgColor;
+    final Color countTextColor;
+    final FontWeight fontWeight;
 
-    final effectiveBgColor = widget.isSelected
-        ? widget.primaryColor.withValues(alpha: widget.isDark ? 0.16 : 0.10)
-        : (_isHovered
-            ? (widget.isDark
-                ? widget.primaryColor.withValues(alpha: 0.08)
-                : widget.primaryColor.withValues(alpha: 0.05))
-            : Colors.transparent);
-
-    final effectiveBorderColor = widget.isSelected
-        ? widget.primaryColor.withValues(alpha: widget.isDark ? 0.45 : 0.35)
-        : (_isHovered
-            ? widget.primaryColor.withValues(alpha: 0.25)
-            : Colors.transparent);
+    if (widget.isSelected) {
+      textColor = widget.primaryColor;
+      iconColor = widget.primaryColor;
+      bgColor = widget.primaryColor.withValues(alpha: widget.isDark ? 0.15 : 0.10);
+      borderColor = widget.primaryColor.withValues(alpha: widget.isDark ? 0.40 : 0.30);
+      countBgColor = widget.primaryColor.withValues(alpha: widget.isDark ? 0.22 : 0.16);
+      countTextColor = widget.primaryColor;
+      fontWeight = FontWeight.w700;
+    } else if (_isHovered) {
+      textColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
+      iconColor = widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155);
+      bgColor = widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+      borderColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+      countBgColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+      countTextColor = widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
+      fontWeight = FontWeight.w600;
+    } else {
+      textColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+      iconColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+      bgColor = Colors.transparent;
+      borderColor = Colors.transparent;
+      countBgColor = widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+      countTextColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+      fontWeight = FontWeight.w500;
+    }
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedScale(
-        scale: _isHovered ? 1.025 : 1.0,
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: effectiveBgColor,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: effectiveBorderColor, width: 1.2),
-            boxShadow: (_isHovered || widget.isSelected)
-                ? [
-                    BoxShadow(
-                      color: widget.primaryColor.withValues(alpha: widget.isSelected ? 0.18 : 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.onTap,
-              borderRadius: BorderRadius.circular(8),
-              splashColor: widget.primaryColor.withValues(alpha: 0.15),
-              highlightColor: widget.primaryColor.withValues(alpha: 0.08),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: (widget.isSelected || _isHovered)
-                          ? widget.primaryColor.withValues(alpha: widget.isSelected ? 0.18 : 0.10)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Icon(
-                      widget.icon,
-                      size: 16,
-                      color: (widget.isSelected || _isHovered) ? widget.primaryColor : effectiveColor,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.title,
-                    style: TextStyle(
-                      fontWeight: widget.isSelected ? FontWeight.w700 : (_isHovered ? FontWeight.w600 : FontWeight.w500),
-                      fontSize: 13,
-                      color: effectiveColor,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: widget.isSelected
-                          ? widget.primaryColor.withValues(alpha: 0.20)
-                          : (_isHovered
-                              ? widget.primaryColor.withValues(alpha: 0.12)
-                              : (widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: (widget.isSelected || _isHovered)
-                            ? widget.primaryColor.withValues(alpha: 0.35)
-                            : (widget.isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Text(
-                      '${widget.count}',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: (widget.isSelected || _isHovered)
-                            ? widget.primaryColor
-                            : (widget.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B)),
-                      ),
-                    ),
-                  ),
-                ],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(6),
+          splashColor: widget.primaryColor.withValues(alpha: 0.10),
+          highlightColor: Colors.transparent,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            curve: Curves.easeInOut,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: borderColor,
+                width: 1,
               ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  widget.icon,
+                  size: 15,
+                  color: iconColor,
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  widget.title,
+                  style: TextStyle(
+                    fontWeight: fontWeight,
+                    fontSize: 12.5,
+                    color: textColor,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+                const SizedBox(width: 7),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 140),
+                  curve: Curves.easeInOut,
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: countBgColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${widget.count}',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: countTextColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
