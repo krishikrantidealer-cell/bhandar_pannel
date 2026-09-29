@@ -83,17 +83,16 @@ class CategoryModel {
   }
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
         'name': name,
         'slug': slug,
-        'title': title,
-        'description': description,
-        'bannerImage': bannerImage,
-        'stripBanner': stripBanner,
-        'image': bannerImage,
-        'imageUrl': bannerImage,
-        'iconImage': iconImage,
-        'cataloguePdf': cataloguePdf,
+        'title': title ?? name,
+        'description': description ?? '',
+        'bannerImage': bannerImage ?? '',
+        'stripBanner': stripBanner ?? '',
+        'image': bannerImage ?? '',
+        'imageUrl': bannerImage ?? '',
+        'iconImage': iconImage ?? '',
+        'cataloguePdf': cataloguePdf ?? '',
         'productsCount': productsCount,
       };
 

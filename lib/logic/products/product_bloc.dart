@@ -53,19 +53,33 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   }
 
   Future<void> _onAddProduct(AddProductEvent event, Emitter<ProductState> emit) async {
-    final updatedList = [event.product, ...state.allProducts];
-    emit(state.copyWith(allProducts: updatedList));
+    final optimisticList = [event.product, ...state.allProducts];
+    emit(state.copyWith(allProducts: optimisticList));
     try {
-      await repository.addProduct(event.product.toJson());
-    } catch (_) {}
+      final created = await repository.addProduct(event.product.toJson());
+      final updatedList = [created, ...state.allProducts.where((p) => p.id != event.product.id && p.id != created.id)];
+      emit(state.copyWith(allProducts: updatedList));
+    } catch (_) {
+      try {
+        final products = await repository.getProducts();
+        emit(state.copyWith(allProducts: products));
+      } catch (_) {}
+    }
   }
 
   Future<void> _onUpdateProduct(UpdateProductEvent event, Emitter<ProductState> emit) async {
-    final updatedList = state.allProducts.map((p) => p.id == event.product.id ? event.product : p).toList();
-    emit(state.copyWith(allProducts: updatedList));
+    final optimisticList = state.allProducts.map((p) => p.id == event.product.id ? event.product : p).toList();
+    emit(state.copyWith(allProducts: optimisticList));
     try {
-      await repository.updateProduct(event.product.id, event.product.toJson());
-    } catch (_) {}
+      final updated = await repository.updateProduct(event.product.id, event.product.toJson());
+      final finalizedList = state.allProducts.map((p) => p.id == event.product.id ? updated : p).toList();
+      emit(state.copyWith(allProducts: finalizedList));
+    } catch (_) {
+      try {
+        final products = await repository.getProducts();
+        emit(state.copyWith(allProducts: products));
+      } catch (_) {}
+    }
   }
 
   Future<void> _onDeleteProduct(DeleteProductEvent event, Emitter<ProductState> emit) async {
@@ -73,6 +87,11 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     emit(state.copyWith(allProducts: updatedList));
     try {
       await repository.deleteProduct(event.productId);
-    } catch (_) {}
+    } catch (_) {
+      try {
+        final products = await repository.getProducts();
+        emit(state.copyWith(allProducts: products));
+      } catch (_) {}
+    }
   }
 }

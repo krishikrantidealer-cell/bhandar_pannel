@@ -30,19 +30,33 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   }
 
   Future<void> _onAddCategory(AddCategoryEvent event, Emitter<CategoryState> emit) async {
-    final updatedList = [event.category, ...state.categories];
-    emit(state.copyWith(categories: updatedList));
+    final optimisticList = [event.category, ...state.categories];
+    emit(state.copyWith(categories: optimisticList));
     try {
-      await repository.addCategory(event.category.toJson());
-    } catch (_) {}
+      final created = await repository.addCategory(event.category.toJson());
+      final updatedList = [created, ...state.categories.where((c) => c.id != event.category.id && c.id != created.id)];
+      emit(state.copyWith(categories: updatedList));
+    } catch (_) {
+      try {
+        final categories = await repository.getCategories();
+        emit(state.copyWith(categories: categories));
+      } catch (_) {}
+    }
   }
 
   Future<void> _onUpdateCategory(UpdateCategoryEvent event, Emitter<CategoryState> emit) async {
-    final updatedList = state.categories.map((c) => c.id == event.category.id ? event.category : c).toList();
-    emit(state.copyWith(categories: updatedList));
+    final optimisticList = state.categories.map((c) => c.id == event.category.id ? event.category : c).toList();
+    emit(state.copyWith(categories: optimisticList));
     try {
-      await repository.updateCategory(event.category.id, event.category.toJson());
-    } catch (_) {}
+      final updated = await repository.updateCategory(event.category.id, event.category.toJson());
+      final finalizedList = state.categories.map((c) => c.id == event.category.id ? updated : c).toList();
+      emit(state.copyWith(categories: finalizedList));
+    } catch (_) {
+      try {
+        final categories = await repository.getCategories();
+        emit(state.copyWith(categories: categories));
+      } catch (_) {}
+    }
   }
 
   Future<void> _onDeleteCategory(DeleteCategoryEvent event, Emitter<CategoryState> emit) async {
@@ -50,6 +64,11 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     emit(state.copyWith(categories: updatedList));
     try {
       await repository.deleteCategory(event.categoryId);
-    } catch (_) {}
+    } catch (_) {
+      try {
+        final categories = await repository.getCategories();
+        emit(state.copyWith(categories: categories));
+      } catch (_) {}
+    }
   }
 }

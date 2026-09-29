@@ -66,7 +66,7 @@ class SubCollectionModel {
 
   Map<String, dynamic> toJson() {
     return {
-      if (id != null) '_id': id,
+      if (id != null && RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(id!)) '_id': id,
       'name': name,
       'slug': slug,
       'isActive': isActive,

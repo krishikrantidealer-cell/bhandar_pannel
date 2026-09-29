@@ -58,13 +58,15 @@ class ProductVariant {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
+        if (RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(id)) '_id': id,
         'title': title,
-        'price': price,
+        'price': price.toStringAsFixed(2),
+        'compareAtPrice': mrp.toStringAsFixed(2),
         'mrp': mrp,
+        'stock': inventoryQuantity.toString(),
         'inventoryQuantity': inventoryQuantity,
-        'sku': sku,
-        'weight': weight,
+        if (sku != null && sku!.isNotEmpty) 'sku': sku,
+        if (weight != null && weight!.isNotEmpty) 'weight': weight,
       };
 }
 
@@ -396,11 +398,10 @@ class ProductModel {
   }
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
         'title': title,
-        'description': description,
+        'description': description ?? '',
         'category': category,
-        if (categoryId != null) 'categoryId': categoryId,
+        if (categoryId != null && categoryId!.isNotEmpty) 'categoryId': categoryId,
         'categoryIds': categoryIds,
         'subCategory': subCategory,
         'productType': productType,
@@ -413,6 +414,7 @@ class ProductModel {
         'status': status,
         'buy1get1': buy1get1,
         'images': images.map((u) => {'original': u, 'medium': u, 'low': u}).toList(),
+        'image': images.isNotEmpty ? images.first : '',
         'variants': variants.map((v) => v.toJson()).toList(),
         'price': price.toStringAsFixed(2),
         'compareAtPrice': mrp.toStringAsFixed(2),

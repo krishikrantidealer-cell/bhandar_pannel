@@ -30,19 +30,33 @@ class CollectionBloc extends Bloc<CollectionEvent, CollectionState> {
   }
 
   Future<void> _onAddCollection(AddCollectionEvent event, Emitter<CollectionState> emit) async {
-    final updatedList = [event.collection, ...state.collections];
-    emit(state.copyWith(collections: updatedList));
+    final optimisticList = [event.collection, ...state.collections];
+    emit(state.copyWith(collections: optimisticList));
     try {
-      await repository.addCollection(event.collection.toJson());
-    } catch (_) {}
+      final created = await repository.addCollection(event.collection.toJson());
+      final updatedList = [created, ...state.collections.where((c) => c.id != event.collection.id && c.id != created.id)];
+      emit(state.copyWith(collections: updatedList));
+    } catch (_) {
+      try {
+        final collections = await repository.getCollections();
+        emit(state.copyWith(collections: collections));
+      } catch (_) {}
+    }
   }
 
   Future<void> _onUpdateCollection(UpdateCollectionEvent event, Emitter<CollectionState> emit) async {
-    final updatedList = state.collections.map((c) => c.id == event.collection.id ? event.collection : c).toList();
-    emit(state.copyWith(collections: updatedList));
+    final optimisticList = state.collections.map((c) => c.id == event.collection.id ? event.collection : c).toList();
+    emit(state.copyWith(collections: optimisticList));
     try {
-      await repository.updateCollection(event.collection.id, event.collection.toJson());
-    } catch (_) {}
+      final updated = await repository.updateCollection(event.collection.id, event.collection.toJson());
+      final finalizedList = state.collections.map((c) => c.id == event.collection.id ? updated : c).toList();
+      emit(state.copyWith(collections: finalizedList));
+    } catch (_) {
+      try {
+        final collections = await repository.getCollections();
+        emit(state.copyWith(collections: collections));
+      } catch (_) {}
+    }
   }
 
   Future<void> _onDeleteCollection(DeleteCollectionEvent event, Emitter<CollectionState> emit) async {
@@ -50,6 +64,11 @@ class CollectionBloc extends Bloc<CollectionEvent, CollectionState> {
     emit(state.copyWith(collections: updatedList));
     try {
       await repository.deleteCollection(event.collectionId);
-    } catch (_) {}
+    } catch (_) {
+      try {
+        final collections = await repository.getCollections();
+        emit(state.copyWith(collections: collections));
+      } catch (_) {}
+    }
   }
 }
