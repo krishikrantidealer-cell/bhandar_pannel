@@ -49,9 +49,33 @@ class OrderItem {
     final rawSku = (json['sku'] ?? json['variantSku'] ?? json['variant_sku'] ?? '').toString().trim();
     final rawVariantTitle = (json['variantTitle'] ?? json['variant_title'] ?? json['option'] ?? '').toString().trim();
 
-    String? imageUrl = json['image'] ?? json['imageUrl'];
+    String? imageUrl;
+    var rawImage = json['image'] ?? json['imageUrl'] ?? json['img'] ?? json['featuredImage'] ?? json['productImage'];
+
+    if (rawImage != null) {
+      if (rawImage is String) {
+        imageUrl = rawImage;
+      } else if (rawImage is Map) {
+        imageUrl = (rawImage['src'] ?? rawImage['url'] ?? rawImage['original'] ?? rawImage['medium'] ?? rawImage['low'])?.toString();
+      }
+    }
+
     if (imageUrl == null && json['images'] is List && (json['images'] as List).isNotEmpty) {
-      imageUrl = json['images'][0]?.toString();
+      final first = json['images'][0];
+      if (first is Map) {
+        imageUrl = (first['src'] ?? first['url'] ?? first['original'] ?? first['medium'] ?? first['low'])?.toString();
+      } else {
+        imageUrl = first?.toString();
+      }
+    }
+
+    if (imageUrl != null) {
+      imageUrl = imageUrl.trim();
+      if (imageUrl.startsWith('/uploads/')) {
+        imageUrl = 'https://backend-bhandar-205278744741.asia-south1.run.app$imageUrl';
+      } else if (imageUrl.isEmpty) {
+        imageUrl = null;
+      }
     }
 
     return OrderItem(
