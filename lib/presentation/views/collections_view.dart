@@ -439,16 +439,21 @@ class _CollectionsViewState extends State<CollectionsView>
                 label: Text('Save Assignments (${selectedIds.length})'),
                 onPressed: () {
                   final tag = targetTagOrSlug.trim();
+                  final titleKey = targetTitle.trim();
                   for (final p in allProducts) {
                     final shouldBeAssigned = selectedIds.contains(p.id);
                     final isCurrentlyAssigned = p.assignedCollections.contains(tag) ||
-                        p.assignedCollections.any((ac) => ac.toLowerCase() == tag.toLowerCase());
+                        p.assignedCollections.any((ac) =>
+                            ac.toLowerCase() == tag.toLowerCase() ||
+                            ac.toLowerCase() == titleKey.toLowerCase());
 
                     if (shouldBeAssigned && !isCurrentlyAssigned) {
-                      final updatedAssigned = [...p.assignedCollections, tag];
+                      final updatedAssigned = {...p.assignedCollections, tag, titleKey}.toList();
                       productBloc.add(UpdateProductEvent(p.copyWith(assignedCollections: updatedAssigned)));
                     } else if (!shouldBeAssigned && isCurrentlyAssigned) {
-                      final updatedAssigned = p.assignedCollections.where((ac) => ac.toLowerCase() != tag.toLowerCase()).toList();
+                      final updatedAssigned = p.assignedCollections.where((ac) =>
+                          ac.toLowerCase() != tag.toLowerCase() &&
+                          ac.toLowerCase() != titleKey.toLowerCase()).toList();
                       productBloc.add(UpdateProductEvent(p.copyWith(assignedCollections: updatedAssigned)));
                     }
                   }

@@ -432,17 +432,19 @@ class _CategoriesViewState extends State<CategoriesView>
 
                   if (isSelected && !isCurrentlyInCat) {
                     final updated = p.copyWith(
-                      category: category.id,
+                      category: category.name,
                       categoryId: category.id,
                       categoryIds: p.categoryIds.contains(category.id) ? p.categoryIds : [...p.categoryIds, category.id],
+                      productType: category.name,
                     );
                     parentContext.read<ProductBloc>().add(UpdateProductEvent(updated));
                   } else if (!isSelected && isCurrentlyInCat) {
                     final newCategoryIds = p.categoryIds.where((id) => id != category.id).toList();
                     final updated = p.copyWith(
-                      category: '',
-                      categoryId: null,
+                      category: newCategoryIds.isEmpty ? 'General' : p.category,
+                      categoryId: newCategoryIds.isEmpty ? null : newCategoryIds.first,
                       categoryIds: newCategoryIds,
+                      productType: newCategoryIds.isEmpty ? 'General' : p.productType,
                     );
                     parentContext.read<ProductBloc>().add(UpdateProductEvent(updated));
                   }
@@ -617,9 +619,7 @@ class _CategoriesViewState extends State<CategoriesView>
                                 return pCat == cName || pCat == cSlug || hasId;
                               }).length;
 
-                              final displayCount = matchedProductsCount > 0
-                                  ? matchedProductsCount
-                                  : (cat.productsCount > 0 ? cat.productsCount : 0);
+                              final displayCount = matchedProductsCount;
 
                               return SizedBox(
                                 width: itemWidth,

@@ -165,16 +165,23 @@ class _ProductEditViewState extends State<ProductEditView> {
         .where((t) => t.isNotEmpty)
         .toList();
 
-    // Map Category IDs matching MongoDB structure
-    String catId = existingProduct?.category ?? '';
+    // Map Category IDs & Human Readable Name matching MongoDB structure
+    String catId = '';
+    String catName = _selectedCategory ?? existingProduct?.resolveCategoryName(categories) ?? 'General';
 
     if (_selectedCategory != null) {
       final matchedCat = categories
-          .where((c) => c.name.toLowerCase() == _selectedCategory!.toLowerCase())
+          .where((c) =>
+              c.name.toLowerCase() == _selectedCategory!.toLowerCase() ||
+              c.slug.toLowerCase() == _selectedCategory!.toLowerCase() ||
+              c.id == _selectedCategory)
           .firstOrNull;
       if (matchedCat != null) {
         catId = matchedCat.id;
+        catName = matchedCat.name;
       }
+    } else if (existingProduct?.categoryId != null) {
+      catId = existingProduct!.categoryId!;
     }
 
     final variantModels = _variants.map((v) {
@@ -207,11 +214,10 @@ class _ProductEditViewState extends State<ProductEditView> {
       id: id,
       title: _titleController.text.trim(),
       brand: _brandController.text.trim(),
-      category: catId,
+      category: catName,
       categoryId: catId.isNotEmpty ? catId : existingProduct?.categoryId,
-      categoryIds: existingProduct?.categoryIds.isNotEmpty == true
-          ? existingProduct!.categoryIds
-          : (catId.isNotEmpty ? [catId] : const []),
+      categoryIds: catId.isNotEmpty ? [catId] : (existingProduct?.categoryIds ?? const []),
+      productType: catName,
       assignedCollections: _assignedCollections,
       price: primaryVariant.price,
       mrp: primaryVariant.mrp,
