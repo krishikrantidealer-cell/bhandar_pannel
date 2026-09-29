@@ -1013,63 +1013,58 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: BorderRadius.circular(6),
-          splashColor: widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          highlightColor: Colors.transparent,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            curve: Curves.easeInOut,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: borderColor,
-                width: 1,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: borderColor,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                widget.icon,
+                size: 15,
+                color: iconColor,
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  widget.icon,
-                  size: 15,
-                  color: iconColor,
+              const SizedBox(width: 7),
+              Text(
+                widget.title,
+                style: TextStyle(
+                  fontWeight: fontWeight,
+                  fontSize: 12.5,
+                  color: textColor,
+                  letterSpacing: -0.1,
                 ),
-                const SizedBox(width: 7),
-                Text(
-                  widget.title,
+              ),
+              const SizedBox(width: 7),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeOut,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: countBgColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${widget.count}',
                   style: TextStyle(
-                    fontWeight: fontWeight,
-                    fontSize: 12.5,
-                    color: textColor,
-                    letterSpacing: -0.1,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: countTextColor,
                   ),
                 ),
-                const SizedBox(width: 7),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 120),
-                  curve: Curves.easeInOut,
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                  decoration: BoxDecoration(
-                    color: countBgColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${widget.count}',
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: countTextColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
