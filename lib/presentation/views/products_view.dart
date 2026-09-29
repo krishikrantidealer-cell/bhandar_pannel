@@ -93,41 +93,37 @@ class _ProductsViewState extends State<ProductsView> with SingleTickerProviderSt
                                   child: Row(
                                     children: [
                                       _HoverableTabButton(
-                                        icon: Icons.inventory_2_rounded,
+                                        icon: Icons.inventory_2_outlined,
                                         title: 'Products',
                                         count: productCount,
                                         isSelected: _tabController.index == 0,
-                                        primaryColor: const Color(0xFF2563EB),
                                         isDark: isDark,
                                         onTap: () => _tabController.animateTo(0),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 6),
                                       _HoverableTabButton(
-                                        icon: Icons.category_rounded,
+                                        icon: Icons.category_outlined,
                                         title: 'Categories',
                                         count: categoryCount,
                                         isSelected: _tabController.index == 1,
-                                        primaryColor: const Color(0xFF059669),
                                         isDark: isDark,
                                         onTap: () => _tabController.animateTo(1),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 6),
                                       _HoverableTabButton(
-                                        icon: Icons.collections_bookmark_rounded,
+                                        icon: Icons.collections_bookmark_outlined,
                                         title: 'Collections & Crops',
                                         count: collectionCount,
                                         isSelected: _tabController.index == 2,
-                                        primaryColor: const Color(0xFF7C3AED),
                                         isDark: isDark,
                                         onTap: () => _tabController.animateTo(2),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 6),
                                       _HoverableTabButton(
-                                        icon: Icons.view_carousel_rounded,
+                                        icon: Icons.view_carousel_outlined,
                                         title: 'Banners & Promotions',
                                         count: bannerCount,
                                         isSelected: _tabController.index == 3,
-                                        primaryColor: const Color(0xFFD97706),
                                         isDark: isDark,
                                         onTap: () => _tabController.animateTo(3),
                                       ),
@@ -954,7 +950,6 @@ class _HoverableTabButton extends StatefulWidget {
   final String title;
   final int count;
   final bool isSelected;
-  final Color primaryColor;
   final bool isDark;
   final VoidCallback onTap;
 
@@ -963,7 +958,6 @@ class _HoverableTabButton extends StatefulWidget {
     required this.title,
     required this.count,
     required this.isSelected,
-    required this.primaryColor,
     required this.isDark,
     required this.onTap,
   });
@@ -977,7 +971,7 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
 
   @override
   Widget build(BuildContext context) {
-    // ── Color Resolvers for Simple & Professional SaaS Aesthetic ──────────────
+    // ── Simple & Clean Dark Grey & Grey Palette ─────────────────────────────
     final Color textColor;
     final Color iconColor;
     final Color bgColor;
@@ -987,27 +981,30 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
     final FontWeight fontWeight;
 
     if (widget.isSelected) {
-      textColor = widget.primaryColor;
-      iconColor = widget.primaryColor;
-      bgColor = widget.primaryColor.withValues(alpha: widget.isDark ? 0.15 : 0.10);
-      borderColor = widget.primaryColor.withValues(alpha: widget.isDark ? 0.40 : 0.30);
-      countBgColor = widget.primaryColor.withValues(alpha: widget.isDark ? 0.22 : 0.16);
-      countTextColor = widget.primaryColor;
+      // Selected State: Solid Dark Slate / Dark Grey
+      textColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
+      iconColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
+      bgColor = widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+      borderColor = widget.isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1);
+      countBgColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+      countTextColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
       fontWeight = FontWeight.w700;
     } else if (_isHovered) {
-      textColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
-      iconColor = widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155);
-      bgColor = widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+      // Hover State: Subtle Light/Dark Grey Wash
+      textColor = widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
+      iconColor = widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
+      bgColor = widget.isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF8FAFC);
       borderColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-      countBgColor = widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-      countTextColor = widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
+      countBgColor = widget.isDark ? const Color(0xFF334155).withValues(alpha: 0.8) : const Color(0xFFE2E8F0);
+      countTextColor = widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155);
       fontWeight = FontWeight.w600;
     } else {
+      // Normal Inactive State: Clean Muted Grey
       textColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
       iconColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
       bgColor = Colors.transparent;
       borderColor = Colors.transparent;
-      countBgColor = widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+      countBgColor = widget.isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
       countTextColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
       fontWeight = FontWeight.w500;
     }
@@ -1021,10 +1018,10 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
         child: InkWell(
           onTap: widget.onTap,
           borderRadius: BorderRadius.circular(6),
-          splashColor: widget.primaryColor.withValues(alpha: 0.10),
+          splashColor: widget.isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
           highlightColor: Colors.transparent,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 140),
+            duration: const Duration(milliseconds: 120),
             curve: Curves.easeInOut,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -1055,7 +1052,7 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
                 ),
                 const SizedBox(width: 7),
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 140),
+                  duration: const Duration(milliseconds: 120),
                   curve: Curves.easeInOut,
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                   decoration: BoxDecoration(
