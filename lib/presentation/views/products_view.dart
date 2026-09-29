@@ -990,7 +990,7 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
       countTextColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
       fontWeight = FontWeight.w700;
     } else if (_isHovered) {
-      // Hover State: Simple Light Grey
+      // Hover State: Simple Crisp Light Grey
       textColor = widget.isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1E293B);
       iconColor = widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155);
       bgColor = widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
@@ -999,11 +999,11 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
       countTextColor = widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569);
       fontWeight = FontWeight.w600;
     } else {
-      // Normal Inactive State: Transparent & Muted Grey
+      // Normal Inactive State: Pure Alpha Zero to prevent transparent-black lerp blip
       textColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
       iconColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-      bgColor = Colors.transparent;
-      borderColor = Colors.transparent;
+      bgColor = widget.isDark ? const Color(0x001E293B) : const Color(0x00F1F5F9);
+      borderColor = widget.isDark ? const Color(0x00334155) : const Color(0x00E2E8F0);
       countBgColor = widget.isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
       countTextColor = widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
       fontWeight = FontWeight.w500;
@@ -1016,9 +1016,7 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
       child: GestureDetector(
         onTap: widget.onTap,
         behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeOut,
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: bgColor,
@@ -1047,9 +1045,7 @@ class _HoverableTabButtonState extends State<_HoverableTabButton> {
                 ),
               ),
               const SizedBox(width: 7),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 100),
-                curve: Curves.easeOut,
+              Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                 decoration: BoxDecoration(
                   color: countBgColor,
